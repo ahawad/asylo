@@ -7117,8 +7117,9 @@ diff -Nur /dev/null external/rdrand/src/config.h
 +
 +/* Define if using gcc and it supports RDRAND */
 +#define HAVE_RDRAND_IN_GCC 1
---- sdk/edger8r/linux/Util.ml	2023-06-11 17:17:26.678441880 +0100
-+++ sdk/edger8r/linux/Util.ml	2023-06-11 17:25:10.908356779 +0100
+diff -Nur sdk/edger8r/linux/Util.ml sdk/edger8r/linux/Util.ml
+--- sdk/edger8r/linux/Util.ml
++++ sdk/edger8r/linux/Util.ml
 @@ -114,7 +114,7 @@
      match args with
          [] -> ()
