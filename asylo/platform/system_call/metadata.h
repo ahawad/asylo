@@ -19,6 +19,8 @@
 #ifndef ASYLO_PLATFORM_SYSTEM_CALL_METADATA_H_
 #define ASYLO_PLATFORM_SYSTEM_CALL_METADATA_H_
 
+#include <cstdint>
+
 #include "absl/strings/string_view.h"
 
 namespace asylo {
