@@ -3,12 +3,12 @@
 load("@com_google_asylo_backend_provider//:enclave_info.bzl", "backend_tools")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
-constraint_value(
+native.constraint_value(
   name = "asylo",
   constraint_setting = "@platforms/os"
 )
 
-platform (
+native.platform (
   name = "asylo_x86_64",
   constraint_values = [
     ":asylo",
