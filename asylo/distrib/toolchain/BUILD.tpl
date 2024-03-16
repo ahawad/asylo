@@ -29,10 +29,24 @@ licenses(["notice"])
 
 package(default_visibility = ["//visibility:public"])
 
+constraint_setting(
+  name = "enclave",
+  visibility = ["//visibility:private"] 
+)
+
+constraint_value(
+  name = "sgx",
+  constraint_setting = ":enclave",
+)
+
+constraint_value(
+  name = "asylo",
+  constraint_setting = "@platforms//os"
+)
 
 ASYLO_TOOLCHAINS = [
-    ("k8", "gcc"),
-    ("sgx_x86_64", "gcc"),
+    ("k8", "gcc", []),
+    ("sgx_x86_64", "gcc", [":sgx"]),
 ]
 
 [
@@ -85,4 +99,21 @@ cc_toolchain_suite(
     toolchains = dict(CC_TOOLCHAINS),
 )
 
+[
+  toolchain(
+    name = "cc-toolchain-" + x[0] + "-" + x[1],
+    exec_compatible_with = [
+      "@platforms//os:linux",
+      "@platforms//cpu:x86_64",
+    ],
+    target_compatible_with = [
+      "@platforms//cpu:x86_64",
+      ":asylo"
+    ] + x[2],
+    toolchain = ":cc-compiler-" + x[0] + "-" + x[1],
+    toolchain_type = "@bazel_tools//tools/cpp:toolchain_type"
+  )
+
+  for x in ASYLO_TOOLCHAINS
+]
 

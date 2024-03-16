@@ -3,6 +3,20 @@
 load("@com_google_asylo_backend_provider//:enclave_info.bzl", "backend_tools")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 
+constraint_value(
+  name = "asylo",
+  constraint_setting = "@platforms/os"
+)
+
+platform (
+  name = "asylo_x86_64",
+  constraint_values = [
+    ":asylo",
+    "@platforms//cpu:x86_64",
+  ],
+  visibility = ["//visibility:private"],
+)
+
 BACKEND_LABEL = "@com_google_asylo_backend_provider//:backend"
 
 GRPC_ARES_LABEL = "@com_github_grpc_grpc//:grpc_use_ares"
@@ -29,6 +43,7 @@ def _asylo_toolchain_and_backend_transition_impl(settings, attr):
     transitive_features_transform = backend_tools.transitive_features_transform(str(backend))
 
     result = {
+        "//command_line_option:platforms" : ":asylo_x86_64",
         "//command_line_option:crosstool_top": "@com_google_asylo_toolchain//toolchain:crosstool",
         "//command_line_option:custom_malloc": "@com_google_asylo_toolchain//toolchain:malloc",
         "//command_line_option:dynamic_mode": "off",
@@ -46,6 +61,7 @@ asylo_toolchain_transition = transition(
     implementation = _asylo_toolchain_and_backend_transition_impl,
     inputs = [BACKEND_LABEL, "//command_line_option:features"],
     outputs = [
+        "//command_line_option:platforms",
         "//command_line_option:crosstool_top",
         "//command_line_option:custom_malloc",
         "//command_line_option:dynamic_mode",
@@ -289,3 +305,4 @@ transitions = struct(
     pre_tags = PRETRANSITION_TAGS,
     supported = transitions_supported,
 )
+
