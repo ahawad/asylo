@@ -1,6 +1,7 @@
 constraint_value(
   name = "asylo",
   constraint_setting = "@platforms//os"
+  visibility = ["//visibility:public"],
 )
 
 platform (
