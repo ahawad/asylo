@@ -24,7 +24,7 @@ readonly install_default=/opt/asylo/toolchains/default
 
 # Dependency source files to use when fetching from online.
 readonly gcc_tag=releases/gcc-7.4.0
-readonly gcc_default="gcc-${gcc_tag//\//-}.tar.gz"  # github renames the archive.
+readonly gcc_default="gcc-${gcc_tag//\//-}.tar.gz" # github renames the archive.
 readonly gcc_default_sha="9d4f845f88a4eab077e777725fafd768239ede9baed6e452909e48d7abeb97c1"
 readonly binutils_default=binutils-2.24.tar.gz
 readonly binutils_default_sha="4930b2886309112c00a279483eaef2f0f8e1b1b62010e0239c16b22af7c346d4"
@@ -37,7 +37,7 @@ err() {
 }
 
 function usage {
-cat <<EOF
+  cat <<EOF
 
 Usage:  $0 [FLAGS]
 
@@ -91,25 +91,25 @@ function set_directory() {
   local readonly DIRECTORY="$1"
   local readonly DIR_PATH="$2"
   if [[ "${DIR_PATH}" =~ \.tar\.gz$ ]]; then
-    eval "export ${DIRECTORY}=\"${DIR_PATH%.tar.gz}\"";
+    eval "export ${DIRECTORY}=\"${DIR_PATH%.tar.gz}\""
     tar xzf "${DIR_PATH}"
   elif [[ "${DIR_PATH}" =~ \.tgz$ ]]; then
-    eval "export ${DIRECTORY}=\"${DIR_PATH%.tgz}\"";
+    eval "export ${DIRECTORY}=\"${DIR_PATH%.tgz}\""
     tar xzf "${DIR_PATH}"
   elif [[ "${DIR_PATH}" =~ \.gz$ ]]; then
-    eval "export ${DIRECTORY}=\"${DIR_PATH%.gz}\"";
+    eval "export ${DIRECTORY}=\"${DIR_PATH%.gz}\""
     gunzip "${DIR_PATH}"
   elif [[ "${DIR_PATH}" =~ \.tar$ ]]; then
-    eval "export ${DIRECTORY}=\"${DIR_PATH%.tar}\"";
+    eval "export ${DIRECTORY}=\"${DIR_PATH%.tar}\""
     tar xf "${DIR_PATH}"
   elif [[ "${DIR_PATH}" =~ \.zip$ ]]; then
-    eval "export ${DIRECTORY}=\"${DIR_PATH%.zip}\"";
+    eval "export ${DIRECTORY}=\"${DIR_PATH%.zip}\""
     unzip "${DIR_PATH}"
   elif [[ "${DIR_PATH}" =~ \.7z$ ]]; then
-    eval "export ${DIRECTORY}=\"${DIR_PATH%.7z}\"";
+    eval "export ${DIRECTORY}=\"${DIR_PATH%.7z}\""
     7z x "${DIR_PATH}"
   elif [[ -d "${DIR_PATH}" ]]; then
-    eval "export ${DIRECTORY}=\"${DIR_PATH}\"";
+    eval "export ${DIRECTORY}=\"${DIR_PATH}\""
   else
     echo "Unsupported archive file: ${DIR_PATH}"
     exit 1
@@ -128,7 +128,7 @@ function verify_sha() {
   local readonly FILE="$1"
   local readonly SHA="$2"
 
-  if ! sha256sum --status -c <(echo "${SHA} -") < ${FILE}; then
+  if ! sha256sum --status -c <(echo "${SHA} -") <${FILE}; then
     echo "${FILE} checksum mismatch" >&2
     return 1
   fi
@@ -148,13 +148,13 @@ function write_install_path() {
     echo "Cannot write install location to ${INSTALL_PATH}." >&2
     return 1
   fi
-  echo "${CONTENTS}" > "${INSTALL_PATH}"
+  echo "${CONTENTS}" >"${INSTALL_PATH}"
 }
 
 function do_install() {
   if [[ -n "${system_install}" ]]; then
     write_install_path "/usr/local/share/asylo/default_toolchain_location" \
-                       "${prefix}"
+      "${prefix}"
   fi
   if [[ -n "${user_install}" ]]; then
     write_install_path "${HOME}/.asylo/default_toolchain_location" "${prefix}"
@@ -169,7 +169,7 @@ INTERACTIVE=
 readonly TAKE_ARGS=bin_utils:,gcc:,newlib:,build_root:,prefix:
 readonly NO_ARGS=no_fetch,help,user,system,interactive,no_build,no_install
 readonly LONG_FLAGS="${TAKE_ARGS},${NO_ARGS}"
-readonly opts=`getopt -a -o hius --long ${LONG_FLAGS} -n $0 -- "$@"`
+readonly opts=$(getopt -a -o hius --long ${LONG_FLAGS} -n $0 -- "$@")
 eval set -- "$opts"
 
 binutils=
@@ -183,21 +183,60 @@ prefix=
 system_install=
 user_install=
 
-while true ; do
+while true; do
   case "$1" in
-    --bin_utils)      set_directory binutils "$2"; shift 2 ;;
-    --build_root)     build_root="$2";             shift 2 ;;
-    --gcc)            set_directory gcc "$2";      shift 2 ;;
-    -h|--help)        usage;                       exit 0 ;;
-    -i|--interactive) INTERACTIVE=1;               shift ;;
-    --newlib)         set_directory newlib "$2";   shift 2 ;;
-    --no_fetch)       no_fetch=1;                  shift ;;
-    --no_build)       no_build=1;                  shift ;;
-    --no_install)     no_install=1;                shift ;;
-    --prefix)         prefix="$2";                 shift 2 ;;
-    -s|--system)      system_install=1;            shift ;;
-    -u|--user)        user_install=1;              shift ;;
-    --)               shift ; break ;;
+  --bin_utils)
+    set_directory binutils "$2"
+    shift 2
+    ;;
+  --build_root)
+    build_root="$2"
+    shift 2
+    ;;
+  --gcc)
+    set_directory gcc "$2"
+    shift 2
+    ;;
+  -h | --help)
+    usage
+    exit 0
+    ;;
+  -i | --interactive)
+    INTERACTIVE=1
+    shift
+    ;;
+  --newlib)
+    set_directory newlib "$2"
+    shift 2
+    ;;
+  --no_fetch)
+    no_fetch=1
+    shift
+    ;;
+  --no_build)
+    no_build=1
+    shift
+    ;;
+  --no_install)
+    no_install=1
+    shift
+    ;;
+  --prefix)
+    prefix="$2"
+    shift 2
+    ;;
+  -s | --system)
+    system_install=1
+    shift
+    ;;
+  -u | --user)
+    user_install=1
+    shift
+    ;;
+  --)
+    shift
+    break
+    ;;
   esac
 done
 declare -r no_build no_fetch no_install system_install
@@ -240,11 +279,13 @@ EOF
   echo -n "Choose [1]: "
   read choice
   case "${choice}" in
-    1|"") user_install=1 ;;
-    2) system_install=1 ;;
-    3) ;;
-    *) echo "Invalid choice" >&2
-       exit 1
+  1 | "") user_install=1 ;;
+  2) system_install=1 ;;
+  3) ;;
+  *)
+    echo "Invalid choice" >&2
+    exit 1
+    ;;
   esac
 fi
 declare -r user_install
@@ -340,7 +381,7 @@ if [[ -z "${newlib}" ]]; then
     rm -rf "${newlib_default%.tar.gz}"
     set_directory newlib "${newlib_default}"
     patch -d "${newlib_default%.tar.gz}" -p0 < \
-        "${toolchain_root}/${newlib_default%.tar.gz}.patch"
+      "${toolchain_root}/${newlib_default%.tar.gz}.patch"
   else
     echo "Missing ${newlib_default%.tar.gz} dependency."
     exit 1
@@ -363,10 +404,10 @@ cd "${build_root}"
 
 if [[ ! -d build-binutils ]]; then
   (mkdir build-binutils && cd build-binutils &&
-     CFLAGS="-Wno-error" "${srcs_root}/${binutils}/configure" \
-       --disable-werror --target="${target}" --prefix="${prefix}" &&
-     make -j"${JOBS}" && make install &&
-     echo "installed binutils")
+    CFLAGS="-Wno-error" "${srcs_root}/${binutils}/configure" \
+      --disable-werror --target="${target}" --prefix="${prefix}" &&
+    make -j"${JOBS}" && make install &&
+    echo "installed binutils")
 fi
 
 ################################################
@@ -386,11 +427,11 @@ GCC_CONFIG=(
 )
 
 if [[ ! -d build-gcc ]]; then
-(mkdir build-gcc && cd build-gcc &&
-   "${srcs_root}/${gcc}/configure" "${GCC_CONFIG[@]}" --enable-languages=c &&
-   make -j"${JOBS}" all-gcc && make -j"${JOBS}" all-target-libgcc &&
-   make install-gcc && make install-target-libgcc &&
-   echo "installed stage1 compiler")
+  (mkdir build-gcc && cd build-gcc &&
+    "${srcs_root}/${gcc}/configure" "${GCC_CONFIG[@]}" --enable-languages=c &&
+    make -j"${JOBS}" all-gcc && make -j"${JOBS}" all-target-libgcc &&
+    make install-gcc && make install-target-libgcc &&
+    echo "installed stage1 compiler")
 fi
 
 ############################################
@@ -400,27 +441,27 @@ fi
 # The newlib above is configured with --target=x86_64-enclave, whereas we
 # configure a generic gcc with --target=x86_64-elf. The loop below builds links
 # to allow the newlib build to find its build tools under the prefix it expects.
-for i in $( ls "${prefix}"/bin); do
+for i in $(ls "${prefix}"/bin); do
   enclave_name="${prefix}/bin/$(echo "${i}" | sed s/elf/enclave/)"
   if [ ! -e "${enclave_name}" ]; then
     ln -s "${i}" "${enclave_name}"
-  fi;
+  fi
 done
 
 readonly newlib_target=x86_64-enclave
 PATH="${prefix}"/bin:"${PATH}"
 if [[ ! -d build-newlib ]]; then
   (mkdir build-newlib && cd build-newlib &&
-     CFLAGS_FOR_TARGET="-fPIC -g -O2 -D__ASYLO__" "${srcs_root}/${newlib}/configure" \
-         --with-pic --prefix="${prefix}" --target="${newlib_target}" &&
-     make -j && make install &&
-     echo "installed newlib") || exit 1
+    CFLAGS_FOR_TARGET="-fPIC -g -O2 -D__ASYLO__" "${srcs_root}/${newlib}/configure" \
+      --with-pic --prefix="${prefix}" --target="${newlib_target}" &&
+    make -j && make install &&
+    echo "installed newlib") || exit 1
 
-# Merge newlib build artifacts into compiler installation.
-rsync -a "${prefix}/${newlib_target}/"* "${prefix}/${target}"
+  # Merge newlib build artifacts into compiler installation.
+  rsync -a "${prefix}/${newlib_target}/"* "${prefix}/${target}"
 
-# Cleanup symlinks and build artifacts.
-rm -rf "${prefix}/${newlib_target}" "${prefix}/bin/${newlib_target}"*
+  # Cleanup symlinks and build artifacts.
+  rm -rf "${prefix}/${newlib_target}" "${prefix}/bin/${newlib_target}"*
 
 fi
 
@@ -441,7 +482,7 @@ GCC_CONFIG+=(
 # as the default LIB_SPEC, except for the pthread expansion at the end.
 # It is written to a file instead of directly passed in GCC_FLAGS to avoid the
 # quotes being stripped at various levels of flag passing.
-cat > asylo_lib_spec.txt << 'EOF'
+cat >asylo_lib_spec.txt <<'EOF'
 -DLIB_SPEC='"%{!shared:%{g*:-lg} %{!p:%{!pg:-lc}}%{p:-lc_p}%{pg:-lc_p}} %{pthread:-lpthread}"'
 EOF
 
@@ -468,29 +509,44 @@ export CFLAGS_FOR_TARGET="${CFLAGS}"
 export CXXFLAGS_FOR_TARGET="${CXXFLAGS}"
 
 (mkdir build-gcc2 && cd build-gcc2 &&
-   "${srcs_root}/${gcc}/configure" "${GCC_CONFIG[@]}" \
-     --disable-werror \
-     --enable-languages=c,c++ \
-     --enable-c99 \
-     --enable-threads=posix &&
-   # gnu-user.opt defines -pthread as a valid flag.
-   make configure-gcc &&
-   sed -i 's^extra_opt_files=.*^& $(srcdir)/config/gnu-user.opt^' gcc/Makefile &&
-   # GCC hard-codes what math functions newlib provides, but has a few missing.
-   make configure-target-libstdc++-v3 &&
-   echo "#define HAVE_HYPOTF 1" >> x86_64-elf/libstdc++-v3/config.h &&
-   echo "#define HAVE_HYPOTL 1" >> x86_64-elf/libstdc++-v3/config.h &&
-   echo "#define HAVE_SQRTL 1" >> x86_64-elf/libstdc++-v3/config.h &&
-   # GCC doesn't do GLIBCXX_CROSSCONFIG if specifying --with-newlib, so we
-   # need to manually tell libstdc++ that we have /dev/random and thread-local
-   # storage available.
-   echo "#define _GLIBCXX_USE_RANDOM_TR1 1" >> x86_64-elf/libstdc++-v3/config.h &&
-   echo "#define HAVE_TLS 1" >> x86_64-elf/libstdc++-v3/config.h &&
-   # Use an extended version of libc++.
-   echo "#define _GLIBCXX_USE_C99 1" >> x86_64-elf/libstdc++-v3/config.h &&
-   make -j"${JOBS}" && make install &&
-   echo "installed compiler")
+  "${srcs_root}/${gcc}/configure" "${GCC_CONFIG[@]}" \
+    --disable-werror \
+    --enable-languages=c,c++ \
+    --enable-c99 \
+    --enable-threads=posix &&
+  # gnu-user.opt defines -pthread as a valid flag.
+  make configure-gcc &&
+  sed -i 's^extra_opt_files=.*^& $(srcdir)/config/gnu-user.opt^' gcc/Makefile &&
+  # GCC hard-codes what math functions newlib provides, but has a few missing.
+  make configure-target-libstdc++-v3 &&
+  echo "#define HAVE_HYPOTF 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  echo "#define HAVE_HYPOTL 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  echo "#define HAVE_SQRTL 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  echo "# define LIBCPP_HAS_NO_FILESYSTEM_LIBRARY 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  # GCC doesn't do GLIBCXX_CROSSCONFIG if specifying --with-newlib, so we
+  # need to manually tell libstdc++ that we have /dev/random and thread-local
+  # storage available.
+  echo "#define _GLIBCXX_USE_RANDOM_TR1 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  echo "#define HAVE_TLS 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  # Use an extended version of libc++.
+  echo "#define _GLIBCXX_USE_C99 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  make -j"${JOBS}" && make install &&
+  echo "installed compiler")
 
 if [[ -z "${no_install}" ]]; then
   do_install
+
+  # Assuming link.h is in the current directory with this script. Adjust if necessary.
+  LINK_H_SOURCE_PATH="${PWD}/link.h"
+
+  # Target directory for link.h based on the provided path structure.
+  LINK_H_TARGET_DIR="${prefix}/lib/gcc/${target}/7.4.0/include/"
+
+  # Check if the target directory exists and then copy link.h into it.
+  if [ -d "${LINK_H_TARGET_DIR}" ]; then
+    cp "${LINK_H_SOURCE_PATH}" "${LINK_H_TARGET_DIR}"
+    echo "link.h copied to ${LINK_H_TARGET_DIR}"
+  else
+    echo "Target directory for link.h does not exist: ${LINK_H_TARGET_DIR}"
+  fi
 fi
