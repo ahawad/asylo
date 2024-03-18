@@ -522,7 +522,7 @@ export CXXFLAGS_FOR_TARGET="${CXXFLAGS}"
   echo "#define HAVE_HYPOTF 1" >>x86_64-elf/libstdc++-v3/config.h &&
   echo "#define HAVE_HYPOTL 1" >>x86_64-elf/libstdc++-v3/config.h &&
   echo "#define HAVE_SQRTL 1" >>x86_64-elf/libstdc++-v3/config.h &&
-  echo "# define LIBCPP_HAS_NO_FILESYSTEM_LIBRARY 1" >>x86_64-elf/libstdc++-v3/config.h &&
+  echo "# define _LIBCPP_HAS_NO_FILESYSTEM_LIBRARY 1" >>x86_64-elf/libstdc++-v3/config.h &&
   # GCC doesn't do GLIBCXX_CROSSCONFIG if specifying --with-newlib, so we
   # need to manually tell libstdc++ that we have /dev/random and thread-local
   # storage available.
@@ -536,10 +536,8 @@ export CXXFLAGS_FOR_TARGET="${CXXFLAGS}"
 if [[ -z "${no_install}" ]]; then
   do_install
 
-  # Assuming link.h is in the current directory with this script. Adjust if necessary.
-  LINK_H_SOURCE_PATH="${PWD}/link.h"
+  LINK_H_SOURCE_PATH="${srcs_root}/link.h"
 
-  # Target directory for link.h based on the provided path structure.
   LINK_H_TARGET_DIR="${prefix}/lib/gcc/${target}/7.4.0/include/"
 
   # Check if the target directory exists and then copy link.h into it.

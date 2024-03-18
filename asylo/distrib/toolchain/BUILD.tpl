@@ -39,11 +39,6 @@ constraint_value(
   constraint_setting = ":enclave",
 )
 
-constraint_value(
-  name = "asylo",
-  constraint_setting = "@platforms//os"
-)
-
 ASYLO_TOOLCHAINS = [
     ("k8", "gcc", []),
     ("sgx_x86_64", "gcc", [":sgx"]),
@@ -108,7 +103,7 @@ cc_toolchain_suite(
     ],
     target_compatible_with = [
       "@platforms//cpu:x86_64",
-      ":asylo"
+      "@com_google_asylo//env:asylo",
     ] + x[2],
     toolchain = ":cc-compiler-" + x[0] + "-" + x[1],
     toolchain_type = "@bazel_tools//tools/cpp:toolchain_type"
