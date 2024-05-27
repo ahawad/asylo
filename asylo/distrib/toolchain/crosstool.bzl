@@ -541,7 +541,10 @@ def _impl(ctx):
                     ACTION_NAMES.cpp_module_codegen,
                     ACTION_NAMES.cpp_module_compile,
                 ],
-                flag_groups = [flag_group(flags = ["-frandom-seed=%{output_file}"])],
+                flag_groups = [flag_group(
+                    flags = ["-frandom-seed=%{output_file}"],
+                    expand_if_available = "output_file",
+                )],
             ),
         ],
     )
