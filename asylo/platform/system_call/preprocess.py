@@ -176,13 +176,13 @@ class SystemCallTable(object):
       key = '{{"{}", "{}"}}'.format(syscall, param_name)
       if annotation_name == 'bound':
         bind_param_index = self.parameter_list[syscall].index(
-            annotation_value) / 2
+            annotation_value) // 2
         bounds.append('{{{}, {}}}'.format(key, bind_param_index))
       if annotation_name == 'count':
         counts.append('{{{}, {}}}'.format(key, annotation_value))
       if annotation_name == 'length':
         bind_param_index = self.parameter_list[syscall].index(
-            annotation_value) / 2
+            annotation_value) // 2
         element_size = 'sizeof({})'.format(param_type.strip('* '))
         index_and_size = '{{{}, {}}}'.format(bind_param_index, element_size)
         lengths.append('{{{}, {}}}'.format(key, index_and_size))
