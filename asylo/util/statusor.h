@@ -452,9 +452,6 @@ class StatusOr {
   /// \deprecated Deprecated as part of Asylo's `absl::Status` migration. Use
   ///             `value()`, `operator*()`, or `operator->()` instead.
   /// \return The stored `T` value.
-  ABSL_DEPRECATED(
-      "Deprecated as part of Asylo's absl::Status migration. Use value(), "
-      "operator*(), or operator->() instead.")
   const T &ValueOrDie() const & { return **this; }
 
   /// Gets a mutable reference to the stored `T` value.
@@ -465,9 +462,6 @@ class StatusOr {
   /// \deprecated Deprecated as part of Asylo's `absl::Status` migration. Use
   ///             `value()`, `operator*()`, or `operator->()` instead.
   /// \return The stored `T` value.
-  ABSL_DEPRECATED(
-      "Deprecated as part of Asylo's absl::Status migration. Use value(), "
-      "operator*(), or operator->() instead.")
   T &ValueOrDie() & { return **this; }
 
   /// Moves and returns the internally-stored `T` value.
@@ -480,9 +474,6 @@ class StatusOr {
   /// \deprecated Deprecated as part of Asylo's `absl::Status` migration. Use
   ///             `value()`, `operator*()`, or `operator->()` instead.
   /// \return The stored `T` value.
-  ABSL_DEPRECATED(
-      "Deprecated as part of Asylo's absl::Status migration. Use value(), "
-      "operator*(), or operator->() instead.")
   T ValueOrDie() && { return *std::move(*this); }
 
   /// Gets the stored `T` value.

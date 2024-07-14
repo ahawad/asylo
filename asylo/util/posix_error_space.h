@@ -37,10 +37,7 @@ namespace error {
 /// \deprecated Deprecated as part of Asylo's `absl::Status` migration. Use the
 ///             functions from asylo/util/posix_errors.h or the matchers from
 ///             asylo/util/posix_error_matchers.h instead.
-enum ABSL_DEPRECATED(
-    "Deprecated as part of Asylo's absl::Status migration. Use the functions "
-    "from asylo/util/posix_errors.h or the matchers from "
-    "asylo/util/posix_error_matchers.h instead.") PosixError {
+enum PosixError {
   P_E2BIG = E2BIG,
   P_EACCES = EACCES,
   P_EADDRINUSE = EADDRINUSE,
@@ -129,10 +126,6 @@ enum ABSL_DEPRECATED(
 /// \deprecated Deprecated as part of Asylo's `absl::Status` migration. Use the
 ///             functions from asylo/util/posix_errors.h or the matchers from
 ///             asylo/util/posix_error_matchers.h instead.
-ABSL_DEPRECATED(
-    "Deprecated as part of Asylo's absl::Status migration. Use the functions "
-    "from asylo/util/posix_errors.h or the matchers from "
-    "asylo/util/posix_error_matchers.h instead.")
 ErrorSpace const *GetErrorSpace(ErrorSpaceAdlTag<PosixError> tag);
 
 /// An implementation of the ErrorSpace interface for POSIX error codes.
@@ -140,10 +133,7 @@ ErrorSpace const *GetErrorSpace(ErrorSpaceAdlTag<PosixError> tag);
 /// \deprecated Deprecated as part of Asylo's `absl::Status` migration. Use the
 ///             functions from asylo/util/posix_errors.h or the matchers from
 ///             asylo/util/posix_error_matchers.h instead.
-class ABSL_DEPRECATED(
-    "Deprecated as part of Asylo's absl::Status migration. Use the functions "
-    "from asylo/util/posix_errors.h or the matchers from "
-    "asylo/util/posix_error_matchers.h instead.") PosixErrorSpace
+class PosixErrorSpace
     : public ErrorSpaceImplementationHelper<PosixErrorSpace> {
  public:
   using code_type = PosixError;

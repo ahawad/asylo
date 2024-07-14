@@ -29,12 +29,7 @@ namespace error {
 // and invalid operations. This error space is provided strictly for internal
 // use in Status and StatusOr only. It should not be used outside of the Status
 // and StatusOr classes.
-enum class ABSL_DEPRECATED(
-    "Deprecated as part of Asylo's absl::Status migration. Do not depend on "
-    "the state of a moved-from Status or StatusOr<T> object, and do not try to "
-    "programatically distinguish a Status resulting from a failed "
-    "deserialization from a successfully deserialized error Status.")
-    StatusError : int {
+enum class StatusError : int {
       OK = 0,
 
       // Indicates that the Status object was moved and is no longer valid.
@@ -46,12 +41,7 @@ enum class ABSL_DEPRECATED(
     };
 
 // Implementation of the ErrorSpace interface for the StatusError enum.
-class ABSL_DEPRECATED(
-    "Deprecated as part of Asylo's absl::Status migration. Do not depend on "
-    "the state of a moved-from Status or StatusOr<T> object, and do not try to "
-    "programatically distinguish a Status resulting from a failed "
-    "deserialization from a successfully deserialized error Status.")
-    StatusErrorSpace : public ErrorSpaceImplementationHelper<StatusErrorSpace> {
+class StatusErrorSpace : public ErrorSpaceImplementationHelper<StatusErrorSpace> {
  public:
   using code_type = StatusError;
 
@@ -67,11 +57,6 @@ class ABSL_DEPRECATED(
 
 // Returns a singleton instance of the ErrorSpace implementation corresponding
 // to the StatusError enum.
-ABSL_DEPRECATED(
-    "Deprecated as part of Asylo's absl::Status migration. Do not depend on "
-    "the state of a moved-from Status or StatusOr<T> object, and do not try to "
-    "programatically distinguish a Status resulting from a failed "
-    "deserialization from a successfully deserialized error Status.")
 ErrorSpace const *GetErrorSpace(ErrorSpaceAdlTag<StatusError> tag);
 
 }  // namespace error
