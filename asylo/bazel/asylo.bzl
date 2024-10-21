@@ -138,6 +138,7 @@ def enclave_loader(
         loader_name_by_backend = {},
         name_by_backend = {},
         deprecation = None,
+        backend_dependent_data = [],
         **kwargs):
     """Wraps a cc_binary with a dependency on enclave availability at runtime.
 
@@ -191,6 +192,7 @@ def enclave_loader(
         name = loader_plain_name,
         backends = backends,
         name_by_backend = loader_name_by_backend,
+        backend_dependent_data = backend_dependent_data,
         **_ensure_static_manual(kwargs)
     )
 
@@ -215,6 +217,7 @@ def enclave_loader(
         "deprecation": deprecation,
         "visibility": kwargs.get("visibility", None),
         "data": kwargs.get("data", []),
+        "backend_dependent_data ": backend_dependent_data ,
     }
     if transitions.supported(native.package_name()):
         script_kwargs["tags"] = kwargs.get("tags", []) + ["asylo-transition"]

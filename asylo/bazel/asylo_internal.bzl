@@ -319,6 +319,7 @@ fi
 # This script will still function under `bazel run` even if the above algorithm
 # could not change to the proper root directory.
 
+export RUNFILES_DIR=${{RUNFILES}}
 exec "./{loader}" {args} "$@"
 """
 
