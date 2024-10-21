@@ -217,7 +217,7 @@ def enclave_loader(
         "deprecation": deprecation,
         "visibility": kwargs.get("visibility", None),
         "data": kwargs.get("data", []),
-        "backend_dependent_data ": backend_dependent_data ,
+        "backend_dependent_data": backend_dependent_data,
     }
     if transitions.supported(native.package_name()):
         script_kwargs["tags"] = kwargs.get("tags", []) + ["asylo-transition"]
