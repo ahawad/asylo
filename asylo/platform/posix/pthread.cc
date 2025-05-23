@@ -81,7 +81,7 @@ inline void initialize_wait_queue(int32_t **wait_queue_ptr) {
 // a lockable object is an aggregate type with a field "lock_" of type
 // pthread_spinlock_t.
 class LockableGuard {
- public:
+public:
   template <class LockableType>
   LockableGuard(LockableType *lockable) : LockableGuard(&lockable->_lock) {}
 
@@ -97,7 +97,7 @@ class LockableGuard {
 
   void Unlock() { pthread_spin_unlock(lock_); }
 
- private:
+private:
   pthread_spinlock_t *const lock_;
 };
 
@@ -206,8 +206,8 @@ int ConvertToErrno(int err_value) {
 }
 
 // Returns a ThreadManager::ThreadOptions from the configuration of |attr|.
-asylo::ThreadManager::ThreadOptions CreateOptions(
-    const pthread_attr_t *const attr) {
+asylo::ThreadManager::ThreadOptions
+CreateOptions(const pthread_attr_t *const attr) {
   asylo::ThreadManager::ThreadOptions options;
 
   if (attr && attr->detach_state == PTHREAD_CREATE_DETACHED) {
@@ -324,7 +324,7 @@ bool CheckAndAllocateThreadSpecificData() {
   return true;
 }
 
-}  // namespace
+} // namespace
 
 namespace asylo {
 namespace pthread_impl {
@@ -411,8 +411,8 @@ bool QueueOperations::Empty() const {
   return current == nullptr;
 }
 
-}  //  namespace pthread_impl
-}  //  namespace asylo
+} //  namespace pthread_impl
+} //  namespace asylo
 
 extern "C" {
 
@@ -651,6 +651,10 @@ int pthread_mutex_unlock(pthread_mutex_t *mutex) {
 
 // Runs the given |init_routine| exactly once.
 int pthread_once(pthread_once_t *once, void (*init_routine)(void)) {
+  // Optimistic check for the once control variable because the mutex lock is very expensive.
+  if (once->_ran) {
+    return 0;
+  }
   asylo::pthread_impl::PthreadMutexLock lock(&once->_mutex);
   if (!once->_ran) {
     init_routine();
@@ -1176,4 +1180,4 @@ int pthread_cancel(pthread_t unused) { return ENOSYS; }
 int pthread_setcancelstate(int state, int *oldstate) { return ENOSYS; }
 int pthread_setcanceltype(int type, int *oldtype) { return ENOSYS; }
 
-}  // extern "C"
+} // extern "C"
