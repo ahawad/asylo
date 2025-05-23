@@ -17,8 +17,9 @@
 # This package contains libraries that define constants, types, and utilities
 # that are specific to the SGX platform.
 
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@linux_sgx//:sgx_sdk.bzl", "sgx")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library", "cc_test")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 
 # Used to enable gtest tests to run inside an enclave.

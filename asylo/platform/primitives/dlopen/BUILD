@@ -14,7 +14,8 @@
 # limitations under the License.
 #
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("//asylo/bazel:copts.bzl", "ASYLO_DEFAULT_COPTS")
 load("//asylo/bazel:dlopen_enclave.bzl", "asylo_dlopen_backend")
@@ -53,18 +54,18 @@ cc_library(
         {
             "@com_google_asylo//asylo": [
                 "//asylo/platform/core:trusted_spin_lock",
+                "//asylo/platform/posix:backend_independent_posix",
                 "//asylo/platform/primitives",
-                "//asylo/platform/primitives/util:message_reader_writer",
-                "//asylo/platform/primitives/util:trusted_runtime_helper",
                 "//asylo/platform/primitives:trusted_primitives",
                 "//asylo/platform/primitives:trusted_runtime",
-                "//asylo/platform/posix:backend_independent_posix",
+                "//asylo/platform/primitives/util:message_reader_writer",
+                "//asylo/platform/primitives/util:trusted_runtime_helper",
             ],
         },
         "Trusted dlopen components must be built with Asylo toolchain",
     ) + [
-        "@com_google_absl//absl/status",
         "//asylo/util:cleanup",
+        "@com_google_absl//absl/status",
     ],
     alwayslink = 1,
 )

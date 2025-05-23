@@ -14,8 +14,9 @@
 # limitations under the License.
 #
 
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@linux_sgx//:sgx_sdk.bzl", "sgx")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load("//asylo/bazel:asylo.bzl", "cc_enclave_test", "cc_test")
 load("//asylo/bazel:copts.bzl", "ASYLO_DEFAULT_COPTS")
@@ -79,10 +80,10 @@ _TRUSTED_SGX_SIM_SRCS = [
 cc_library(
     name = "trusted_sgx",
     srcs = [
+        "enclave_syscalls.cc",
         "exceptions.cc",
         "trusted_runtime.cc",
         "trusted_sgx.cc",
-        "enclave_syscalls.cc",
         "untrusted_cache_malloc.cc",
     ] + select(
         {
@@ -120,12 +121,12 @@ cc_library(
         no_match_error = "Trusted SGX components must be built with an SGX backend selected",
     ) + [
         ":sgx_params",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
-        "//asylo/util:lock_guard",
         "//asylo/platform/primitives/util:message_reader_writer",
         "//asylo/util:cleanup",
+        "//asylo/util:lock_guard",
         "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
         "@sgx_dcap//:quote_wrapper_common",
     ],
     alwayslink = 1,
@@ -349,14 +350,14 @@ cc_library(
     ],
     deps = [
         ":fork_cc_proto",
-        "@com_google_absl//absl/status",
-        "@com_google_absl//absl/strings",
         "//asylo:enclave_cc_proto",
         "//asylo/platform/core:trusted_core",
         "//asylo/platform/host_call",
         "//asylo/platform/posix/threading:thread_manager",
         "//asylo/platform/primitives/util:status_serializer",
         "//asylo/util:status",
+        "@com_google_absl//absl/status",
+        "@com_google_absl//absl/strings",
     ] + select(
         {"@com_google_asylo//asylo": [
             "//asylo/platform/primitives:trusted_primitives",
@@ -453,13 +454,13 @@ cc_library(
     deps = [
         ":trusted_fork",
         ":trusted_sgx",
-        "@com_google_absl//absl/memory",
-        "@com_google_absl//absl/strings",
         "//asylo/platform/common:memory",
         "//asylo/platform/core:entry_points",
         "//asylo/platform/core:shared_name",
         "//asylo/platform/host_call",
         "//asylo/platform/primitives:trusted_primitives",
+        "@com_google_absl//absl/memory",
+        "@com_google_absl//absl/strings",
     ] + select(
         {
             "@linux_sgx//:sgx_hw": _TRUSTED_SGX_BACKEND_DEPS,

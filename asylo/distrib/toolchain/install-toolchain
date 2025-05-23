@@ -404,7 +404,7 @@ cd "${build_root}"
 
 if [[ ! -d build-binutils ]]; then
   (mkdir build-binutils && cd build-binutils &&
-    CFLAGS="-Wno-error" "${srcs_root}/${binutils}/configure" \
+    CFLAGS="-Wno-error -Wno-incompatible-pointer-types" "${srcs_root}/${binutils}/configure" \
       --disable-werror --target="${target}" --prefix="${prefix}" &&
     make -j"${JOBS}" && make install &&
     echo "installed binutils")

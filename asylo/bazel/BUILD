@@ -17,7 +17,8 @@
 # BUILD file needed to make bzl files available to load.
 
 load("@bazel_skylib//:bzl_library.bzl", "bzl_library")
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library", "cc_proto_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
     "//asylo/bazel:asylo.bzl",

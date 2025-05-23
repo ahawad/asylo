@@ -16,7 +16,8 @@
 
 # Socket implementation, tests, and perf measurement tools.
 
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
     "//asylo/bazel:asylo.bzl",
@@ -79,9 +80,9 @@ cc_library(
     copts = ASYLO_DEFAULT_COPTS,
     tags = ASYLO_ALL_BACKEND_TAGS,
     deps = [
-        "@com_google_absl//absl/status",
         "//asylo/util:posix_errors",
         "//asylo/util:status",
+        "@com_google_absl//absl/status",
     ] + select({
         "@com_google_asylo//asylo": [
             ":sockets",
@@ -99,11 +100,11 @@ cc_library(
     tags = ASYLO_ALL_BACKEND_TAGS,
     deps = [
         ":socket_transmit",
-        "@com_google_absl//absl/status",
-        "//asylo/util:logging",
         "//asylo/platform/storage/utils:fd_closer",
+        "//asylo/util:logging",
         "//asylo/util:posix_errors",
         "//asylo/util:status",
+        "@com_google_absl//absl/status",
     ] + select({
         "@com_google_asylo//asylo": [
             ":sockets",
@@ -121,11 +122,11 @@ cc_library(
     tags = ASYLO_ALL_BACKEND_TAGS,
     deps = [
         ":socket_transmit",
-        "@com_google_absl//absl/status",
-        "//asylo/util:logging",
         "//asylo/platform/storage/utils:fd_closer",
+        "//asylo/util:logging",
         "//asylo/util:posix_errors",
         "//asylo/util:status",
+        "@com_google_absl//absl/status",
     ] + select({
         "@com_google_asylo//asylo": [
             ":sockets",

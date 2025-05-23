@@ -14,8 +14,9 @@
 # limitations under the License.
 #
 
+load("@com_google_protobuf//bazel:cc_proto_library.bzl", "cc_proto_library")
 load("@linux_sgx//:sgx_sdk.bzl", "sgx")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_proto_library")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_proto//proto:defs.bzl", "proto_library")
 load(
     "//asylo/bazel:asylo.bzl",
@@ -150,23 +151,23 @@ cc_library(
     tags = ASYLO_ALL_BACKEND_TAGS,
     visibility = ["//visibility:private"],
     deps = [
-        "@com_google_absl//absl/synchronization",
-        "//asylo/util:logging",
-        "//asylo/platform/host_call",
         "//asylo/platform/common:enclave_state",
         "//asylo/platform/core:atomic",
         "//asylo/platform/core:shared_name",
         "//asylo/platform/core:trusted_core",
+        "//asylo/platform/host_call",
         "//asylo/platform/posix/io:io_manager",
-        "//asylo/platform/posix/sockets",
         "//asylo/platform/posix/signal:signal_manager",
+        "//asylo/platform/posix/sockets",
         "//asylo/platform/posix/syscall:enclave_clone",
         "//asylo/platform/posix/syscall:signal_syscalls",
         "//asylo/platform/posix/threading:thread_manager",
         "//asylo/platform/primitives/util:trusted_memory",
         "//asylo/platform/system",
+        "//asylo/util:logging",
         "//asylo/util:posix_errors",
         "//asylo/util:status",
+        "@com_google_absl//absl/synchronization",
     ] + select(
         {
             "@linux_sgx//:sgx_hw": _POSIX_SGX_DEPS,
