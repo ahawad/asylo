@@ -75,13 +75,13 @@ class SharedName {
     return SharedName(kTimerName, name);
   }
 
-  struct Hash : std::unary_function<SharedName, size_t> {
+  struct Hash {
     size_t operator()(const SharedName &name) const {
       return HashCombine<std::string>(std::hash<int>()(name.kind_), name.name_);
     }
   };
 
-  struct Eq : std::binary_function<SharedName, SharedName, bool> {
+  struct Eq {
     bool operator()(const SharedName &lhs, const SharedName &rhs) const {
       return (lhs.kind_ == rhs.kind_) && (lhs.name_ == rhs.name_);
     }
