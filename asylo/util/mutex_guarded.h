@@ -32,9 +32,11 @@
 
 namespace asylo {
 
-template <typename T> class LockView;
+template <typename T>
+class LockView;
 
-template <typename T> class ReaderLockView;
+template <typename T>
+class ReaderLockView;
 
 // MutexGuarded<T> protects an object of type T with a mutex. MutexGuarded<T>
 // does not allow direct access to the contained object. Instead, the mutex must
@@ -152,361 +154,365 @@ template <typename T> class ReaderLockView;
 // methods on the locked view objects have type std::function<bool(const T &)>,
 // rather than absl::Condition. The const T & argument in these functions is a
 // reference to the object guarded by a MutexGuarded<T>.
-template <typename T> class MutexGuarded {
-  static_assert(std::is_move_constructible<T>::value,
-                "T must be a move-constructible type");
+template <typename T>
+class MutexGuarded {
+    static_assert(std::is_move_constructible<T>::value,
+                  "T must be a move-constructible type");
 
-public:
-  MutexGuarded() = default;
+   public:
+    MutexGuarded() = default;
 
-  // Constucts a MutexGuarded<T> that initially holds |value|.
-  explicit MutexGuarded(T value) : value_(std::forward<T>(value)) {}
+    // Constucts a MutexGuarded<T> that initially holds |value|.
+    explicit MutexGuarded(T value) : value_(std::forward<T>(value)) {}
 
-  // Like the constructor above, but creates the mutex with static storage
-  // duration.
-  MutexGuarded(T value, absl::ConstInitType const_init)
-      : mu_(const_init), value_(std::forward<T>(value)) {}
+    // Like the constructor above, but creates the mutex with static storage
+    // duration.
+    MutexGuarded(T value, absl::ConstInitType const_init)
+        : mu_(const_init), value_(std::forward<T>(value)) {}
 
-  MutexGuarded(const MutexGuarded &other) = delete;
-  MutexGuarded &operator=(const MutexGuarded &other) = delete;
+    MutexGuarded(const MutexGuarded &other) = delete;
+    MutexGuarded &operator=(const MutexGuarded &other) = delete;
 
-  // MutexGuarded<T> objects can be moved. However, moving a MutexGuarded<T>
-  // object while there are locked view objects referencing it is unsafe and
-  // will cause undefined behavior.
+    // MutexGuarded<T> objects can be moved. However, moving a MutexGuarded<T>
+    // object while there are locked view objects referencing it is unsafe and
+    // will cause undefined behavior.
 
-  // Move constructor for MutexGuarded<T>. Does not move the mutex from
-  // |other| into *this. Locks |other| before moving.
-  MutexGuarded(MutexGuarded &&other) : value_(other.Release()) {}
+    // Move constructor for MutexGuarded<T>. Does not move the mutex from
+    // |other| into *this. Locks |other| before moving.
+    MutexGuarded(MutexGuarded &&other) : value_(other.Release()) {}
 
-  // Move assignment operator for MutexGuarded<T>. Does not move the mutex
-  // from |other| into *this. Locks *this and |other| before moving.
-  MutexGuarded &operator=(MutexGuarded &&other) ABSL_LOCKS_EXCLUDED(mu_) {
-    absl::MutexLock lock(&mu_);
-    value_ = other.Release();
-    return *this;
-  }
-
-  // Releases ownership of the contained value to the caller. Exclusively
-  // locks the contained mutex before doing so.
-  T &&Release() ABSL_UNLOCK_FUNCTION(mu_) {
-    absl::MutexLock lock(&mu_);
-    return std::move(value_);
-  }
-
-  // Returns a smart pointer to the contained value. The smart pointer is also
-  // an RAII writer lock on the contained mutex.
-  LockView<T> Lock() ABSL_EXCLUSIVE_LOCK_FUNCTION(mu_) {
-    mu_.Lock();
-    return LockView<T>(&mu_, &value_);
-  }
-
-  // Returns a read-only smart pointer to the contained value. The smart
-  // pointer is also an RAII reader lock on the contained mutex.
-  ReaderLockView<T> ReaderLock() const ABSL_SHARED_LOCK_FUNCTION(mu_) {
-    mu_.ReaderLock();
-    return ReaderLockView<T>(&mu_, &value_);
-  }
-
-  // Tries to acquire the contained mutex exclusively. If successful, behaves
-  // as Lock(). Otherwise, returns absl::nullopt.
-  absl::optional<LockView<T>> TryLock()
-      ABSL_EXCLUSIVE_TRYLOCK_FUNCTION(true, mu_) {
-    if (mu_.TryLock()) {
-      return LockView<T>(&mu_, &value_);
-    } else {
-      return absl::nullopt;
+    // Move assignment operator for MutexGuarded<T>. Does not move the mutex
+    // from |other| into *this. Locks *this and |other| before moving.
+    MutexGuarded &operator=(MutexGuarded &&other) ABSL_LOCKS_EXCLUDED(mu_) {
+        absl::MutexLock lock(&mu_);
+        value_ = other.Release();
+        return *this;
     }
-  }
 
-  // Tries to acquire a shared lock on the contained mutex. If successful,
-  // behaves as ReaderLock(). Otherwise, returns absl::nullopt.
-  absl::optional<ReaderLockView<T>> ReaderTryLock() const
-      ABSL_SHARED_TRYLOCK_FUNCTION(true, mu_) {
-    if (mu_.ReaderTryLock()) {
-      return ReaderLockView<T>(&mu_, &value_);
-    } else {
-      return absl::nullopt;
+    // Releases ownership of the contained value to the caller. Exclusively
+    // locks the contained mutex before doing so.
+    T &&Release() ABSL_LOCKS_EXCLUDED(mu_) {
+        absl::MutexLock lock(&mu_);
+        return std::move(value_);
     }
-  }
 
-  // Asserts that the current thread holds an exclusive (writer) lock on the
-  // contained mutex. If it does not, then behaves as
-  // absl::Mutex::AssertHeld().
-  void AssertHeld() const { mu_.AssertHeld(); }
+    // Returns a smart pointer to the contained value. The smart pointer is also
+    // an RAII writer lock on the contained mutex.
+    LockView<T> Lock() ABSL_EXCLUSIVE_LOCK_FUNCTION(mu_) {
+        mu_.Lock();
+        return LockView<T>(&mu_, &value_);
+    }
 
-  // Asserts that the current thread holds a shared (reader) lock on the
-  // contained mutex. If it does not, then behaves as
-  // absl::Mutex::AssertReaderHeld().
-  void AssertReaderHeld() const { mu_.AssertReaderHeld(); }
+    // Returns a read-only smart pointer to the contained value. The smart
+    // pointer is also an RAII reader lock on the contained mutex.
+    ReaderLockView<T> ReaderLock() const ABSL_SHARED_LOCK_FUNCTION(mu_) {
+        mu_.ReaderLock();
+        return ReaderLockView<T>(&mu_, &value_);
+    }
 
-  // Returns a smart pointer to the contained value once |cond| is true and
-  // the contained mutex can be acquired exclusively. The smart pointer is
-  // also an RAII writer lock on the contained mutex.
-  LockView<T> LockWhen(std::function<bool(const T &)> cond)
-      ABSL_LOCKS_EXCLUDED(mu_) {
-    auto condition_function = [this, cond] { return cond(value_); };
-    mu_.LockWhen(absl::Condition(&condition_function));
-    return LockView<T>(&mu_, &value_);
-  }
+    // Tries to acquire the contained mutex exclusively. If successful, behaves
+    // as Lock(). Otherwise, returns absl::nullopt.
+    absl::optional<LockView<T>> TryLock()
+        ABSL_EXCLUSIVE_TRYLOCK_FUNCTION(true, mu_) {
+        if (mu_.TryLock()) {
+            return LockView<T>(&mu_, &value_);
+        } else {
+            return absl::nullopt;
+        }
+    }
 
-  // Returns a smart pointer to the contained value once |cond| is true and
-  // the contained mutex can be acquired in shared mode. The smart pointer is
-  // also an RAII reader lock on the contained mutex.
-  ReaderLockView<T> ReaderLockWhen(std::function<bool(const T &)> cond) const
-      ABSL_LOCKS_EXCLUDED(mu_) {
-    auto condition_function = [this, cond] { return cond(value_); };
-    mu_.ReaderLockWhen(absl::Condition(&condition_function));
-    return ReaderLockView<T>(&mu_, &value_);
-  }
+    // Tries to acquire a shared lock on the contained mutex. If successful,
+    // behaves as ReaderLock(). Otherwise, returns absl::nullopt.
+    absl::optional<ReaderLockView<T>> ReaderTryLock() const
+        ABSL_SHARED_TRYLOCK_FUNCTION(true, mu_) {
+        if (mu_.ReaderTryLock()) {
+            return ReaderLockView<T>(&mu_, &value_);
+        } else {
+            return absl::nullopt;
+        }
+    }
 
-  // Returns a bool and a smart pointer to the contained value once the
-  // contained mutex can be acquired exclusively and either:
-  //
-  //  * |cond| is true; or
-  //  * |timeout| has passed since LockWhenWithTimeout() was called.
-  //
-  // The bool member of the pair is true if and only if |cond| was true when
-  // the mutex was acquired.
-  //
-  // The returned smart pointer is also an RAII writer lock on the contained
-  // mutex.
-  std::pair<bool, LockView<T>>
-  LockWhenWithTimeout(std::function<bool(const T &)> cond,
-                      absl::Duration timeout) ABSL_LOCKS_EXCLUDED(mu_) {
-    auto condition_function = [this, cond] { return cond(value_); };
-    bool cond_is_true =
-        mu_.LockWhenWithTimeout(absl::Condition(&condition_function), timeout);
-    return std::make_pair(cond_is_true, LockView<T>(&mu_, &value_));
-  }
+    // Asserts that the current thread holds an exclusive (writer) lock on the
+    // contained mutex. If it does not, then behaves as
+    // absl::Mutex::AssertHeld().
+    void AssertHeld() const { mu_.AssertHeld(); }
 
-  // Returns a bool and a smart pointer to the contained value once the
-  // contained mutex can be acquired in shared mode and either:
-  //
-  //  * |cond| is true; or
-  //  * |timeout| has passed since ReaderLockWhenWithTimeout() was called.
-  //
-  // The bool member of the pair is true if and only if |cond| was true when
-  // the mutex was acquired.
-  //
-  // The returned smart pointer is also an RAII reader lock on the contained
-  // mutex.
-  std::pair<bool, ReaderLockView<T>>
-  ReaderLockWhenWithTimeout(std::function<bool(const T &)> cond,
-                            absl::Duration timeout) const
-      ABSL_LOCKS_EXCLUDED(mu_) {
-    auto condition_function = [this, cond] { return cond(value_); };
-    bool cond_is_true = mu_.ReaderLockWhenWithTimeout(
-        absl::Condition(&condition_function), timeout);
-    return std::make_pair(cond_is_true, ReaderLockView<T>(&mu_, &value_));
-  }
+    // Asserts that the current thread holds a shared (reader) lock on the
+    // contained mutex. If it does not, then behaves as
+    // absl::Mutex::AssertReaderHeld().
+    void AssertReaderHeld() const { mu_.AssertReaderHeld(); }
 
-  // As LockWhenWithTimeout(), but uses a deadline instead of a timeout.
-  std::pair<bool, LockView<T>>
-  LockWhenWithDeadline(std::function<bool(const T &)> cond, absl::Time deadline)
-      ABSL_LOCKS_EXCLUDED(mu_) {
-    auto condition_function = [this, cond] { return cond(value_); };
-    bool cond_is_true = mu_.LockWhenWithDeadline(
-        absl::Condition(&condition_function), deadline);
-    return std::make_pair(cond_is_true, LockView<T>(&mu_, &value_));
-  }
+    // Returns a smart pointer to the contained value once |cond| is true and
+    // the contained mutex can be acquired exclusively. The smart pointer is
+    // also an RAII writer lock on the contained mutex.
+    LockView<T> LockWhen(std::function<bool(const T &)> cond)
+        ABSL_LOCKS_EXCLUDED(mu_) {
+        auto condition_function = [this, cond] { return cond(value_); };
+        mu_.LockWhen(absl::Condition(&condition_function));
+        return LockView<T>(&mu_, &value_);
+    }
 
-  // As ReaderLockWhenWithTimeout(), but uses a deadline instead of a timeout.
-  std::pair<bool, ReaderLockView<T>>
-  ReaderLockWhenWithDeadline(std::function<bool(const T &)> cond,
-                             absl::Time deadline) const
-      ABSL_LOCKS_EXCLUDED(mu_) {
-    auto condition_function = [this, cond] { return cond(value_); };
-    bool cond_is_true = mu_.ReaderLockWhenWithDeadline(
-        absl::Condition(&condition_function), deadline);
-    return std::make_pair(cond_is_true, ReaderLockView<T>(&mu_, &value_));
-  }
+    // Returns a smart pointer to the contained value once |cond| is true and
+    // the contained mutex can be acquired in shared mode. The smart pointer is
+    // also an RAII reader lock on the contained mutex.
+    ReaderLockView<T> ReaderLockWhen(std::function<bool(const T &)> cond) const
+        ABSL_LOCKS_EXCLUDED(mu_) {
+        auto condition_function = [this, cond] { return cond(value_); };
+        mu_.ReaderLockWhen(absl::Condition(&condition_function));
+        return ReaderLockView<T>(&mu_, &value_);
+    }
 
-private:
-  mutable absl::Mutex mu_;
-  T value_ ABSL_GUARDED_BY(mu_);
+    // Returns a bool and a smart pointer to the contained value once the
+    // contained mutex can be acquired exclusively and either:
+    //
+    //  * |cond| is true; or
+    //  * |timeout| has passed since LockWhenWithTimeout() was called.
+    //
+    // The bool member of the pair is true if and only if |cond| was true when
+    // the mutex was acquired.
+    //
+    // The returned smart pointer is also an RAII writer lock on the contained
+    // mutex.
+    std::pair<bool, LockView<T>> LockWhenWithTimeout(
+        std::function<bool(const T &)> cond, absl::Duration timeout)
+        ABSL_LOCKS_EXCLUDED(mu_) {
+        auto condition_function = [this, cond] { return cond(value_); };
+        bool cond_is_true = mu_.LockWhenWithTimeout(
+            absl::Condition(&condition_function), timeout);
+        return std::make_pair(cond_is_true, LockView<T>(&mu_, &value_));
+    }
+
+    // Returns a bool and a smart pointer to the contained value once the
+    // contained mutex can be acquired in shared mode and either:
+    //
+    //  * |cond| is true; or
+    //  * |timeout| has passed since ReaderLockWhenWithTimeout() was called.
+    //
+    // The bool member of the pair is true if and only if |cond| was true when
+    // the mutex was acquired.
+    //
+    // The returned smart pointer is also an RAII reader lock on the contained
+    // mutex.
+    std::pair<bool, ReaderLockView<T>> ReaderLockWhenWithTimeout(
+        std::function<bool(const T &)> cond, absl::Duration timeout) const
+        ABSL_LOCKS_EXCLUDED(mu_) {
+        auto condition_function = [this, cond] { return cond(value_); };
+        bool cond_is_true = mu_.ReaderLockWhenWithTimeout(
+            absl::Condition(&condition_function), timeout);
+        return std::make_pair(cond_is_true, ReaderLockView<T>(&mu_, &value_));
+    }
+
+    // As LockWhenWithTimeout(), but uses a deadline instead of a timeout.
+    std::pair<bool, LockView<T>> LockWhenWithDeadline(
+        std::function<bool(const T &)> cond, absl::Time deadline)
+        ABSL_LOCKS_EXCLUDED(mu_) {
+        auto condition_function = [this, cond] { return cond(value_); };
+        bool cond_is_true = mu_.LockWhenWithDeadline(
+            absl::Condition(&condition_function), deadline);
+        return std::make_pair(cond_is_true, LockView<T>(&mu_, &value_));
+    }
+
+    // As ReaderLockWhenWithTimeout(), but uses a deadline instead of a timeout.
+    std::pair<bool, ReaderLockView<T>> ReaderLockWhenWithDeadline(
+        std::function<bool(const T &)> cond, absl::Time deadline) const
+        ABSL_LOCKS_EXCLUDED(mu_) {
+        auto condition_function = [this, cond] { return cond(value_); };
+        bool cond_is_true = mu_.ReaderLockWhenWithDeadline(
+            absl::Condition(&condition_function), deadline);
+        return std::make_pair(cond_is_true, ReaderLockView<T>(&mu_, &value_));
+    }
+
+   private:
+    mutable absl::Mutex mu_;
+    T value_ ABSL_GUARDED_BY(mu_);
 };
 
 // A writeable view of a mutex-guarded object of type T. The view object
 // maintains a writer lock on the guarding mutex during its lifetime. The view
 // object can be dereferenced to the guarded object.
-template <typename T> class LockView {
-public:
-  LockView() = delete;
+template <typename T>
+class ABSL_SCOPED_LOCKABLE LockView {
+   public:
+    LockView() = delete;
 
-  LockView(const LockView &other) = delete;
-  LockView &operator=(const LockView &other) = delete;
+    LockView(const LockView &other) = delete;
+    LockView &operator=(const LockView &other) = delete;
 
-  // Non-default move operations are provided because default move
-  // implementations do not set moved-from raw pointers to nullptr. The
-  // default move-assignment implementation also leaves the previously held
-  // mutex (if any) locked.
+    // Non-default move operations are provided because default move
+    // implementations do not set moved-from raw pointers to nullptr. The
+    // default move-assignment implementation also leaves the previously held
+    // mutex (if any) locked.
 
-  LockView(LockView &&other) : mu_(other.mu_), value_(other.value_) {
-    other.Clear();
-  }
-
-  LockView &operator=(LockView &&other) {
-    if (&other != this) {
-      // Ensure that the current mutex, if any, is released before moving.
-      if (mu_ != nullptr) {
-        mu_->WriterUnlock();
-      }
-
-      mu_ = other.mu_;
-      value_ = other.value_;
-
-      other.Clear();
+    LockView(LockView &&other) : mu_(other.mu_), value_(other.value_) {
+        other.Clear();
     }
-    return *this;
-  }
 
-  ~LockView() {
-    if (mu_ != nullptr) {
-      mu_->WriterUnlock();
+    LockView &operator=(LockView &&other) {
+        if (&other != this) {
+            // Ensure that the current mutex, if any, is released before moving.
+            if (mu_ != nullptr) {
+                mu_->WriterUnlock();
+            }
+
+            mu_ = other.mu_;
+            value_ = other.value_;
+
+            other.Clear();
+        }
+        return *this;
     }
-  }
 
-  T &operator*() { return *value_; }
+    ~LockView() ABSL_UNLOCK_FUNCTION() {
+        if (mu_ != nullptr) {
+            mu_->WriterUnlock();
+        }
+    }
 
-  T *operator->() { return value_; }
+    T &operator*() { return *value_; }
 
-  // Releases the lock on the referened mutex and reacquires it when |cond| is
-  // true and the mutex can be acquired exclusively again.
-  void Await(std::function<bool(const T &)> cond) {
-    auto condition_function = [this, cond] { return cond(*value_); };
-    mu_->Await(absl::Condition(&condition_function));
-  }
+    T *operator->() { return value_; }
 
-  // Releases the lock on the referened mutex and reacquires it when the mutex
-  // can be reacquired exclusively and either:
-  //
-  //  * |cond| evaluates to true when passed the guarded value; or
-  //  * |timeout| has passed since AwaitWithTimeout() was called.
-  //
-  // The returned bool indicates whether |cond| was true when the mutex was
-  // reacquired.
-  bool AwaitWithTimeout(std::function<bool(const T &)> cond,
-                        absl::Duration timeout) {
-    auto condition_function = [this, cond] { return cond(*value_); };
-    return mu_->AwaitWithTimeout(absl::Condition(&condition_function), timeout);
-  }
+    // Releases the lock on the referened mutex and reacquires it when |cond| is
+    // true and the mutex can be acquired exclusively again.
+    void Await(std::function<bool(const T &)> cond) {
+        auto condition_function = [this, cond] { return cond(*value_); };
+        mu_->Await(absl::Condition(&condition_function));
+    }
 
-  // As AwaitWithTimeout(), but uses a deadline instead of a timeout.
-  bool AwaitWithDeadline(std::function<bool(const T &)> cond,
-                         absl::Time deadline) {
-    auto condition_function = [this, cond] { return cond(*value_); };
-    return mu_->AwaitWithDeadline(absl::Condition(&condition_function),
-                                  deadline);
-  }
+    // Releases the lock on the referened mutex and reacquires it when the mutex
+    // can be reacquired exclusively and either:
+    //
+    //  * |cond| evaluates to true when passed the guarded value; or
+    //  * |timeout| has passed since AwaitWithTimeout() was called.
+    //
+    // The returned bool indicates whether |cond| was true when the mutex was
+    // reacquired.
+    bool AwaitWithTimeout(std::function<bool(const T &)> cond,
+                          absl::Duration timeout) {
+        auto condition_function = [this, cond] { return cond(*value_); };
+        return mu_->AwaitWithTimeout(absl::Condition(&condition_function),
+                                     timeout);
+    }
 
-protected:
-  template <typename U> friend class MutexGuarded;
+    // As AwaitWithTimeout(), but uses a deadline instead of a timeout.
+    bool AwaitWithDeadline(std::function<bool(const T &)> cond,
+                           absl::Time deadline) {
+        auto condition_function = [this, cond] { return cond(*value_); };
+        return mu_->AwaitWithDeadline(absl::Condition(&condition_function),
+                                      deadline);
+    }
 
-  LockView(absl::Mutex *mu, T *value) : mu_(mu), value_(value) {}
+   protected:
+    template <typename U>
+    friend class MutexGuarded;
 
-private:
-  // Sets all internal pointers to nullptr.
-  void Clear() {
-    mu_ = nullptr;
-    value_ = nullptr;
-  }
+    LockView(absl::Mutex *mu, T *value) : mu_(mu), value_(value) {}
 
-  absl::Mutex *mu_;
-  T *value_;
+   private:
+    // Sets all internal pointers to nullptr.
+    void Clear() {
+        mu_ = nullptr;
+        value_ = nullptr;
+    }
+
+    absl::Mutex *mu_;
+    T *value_;
 };
 
 // A read-only view of a mutex-guarded object of type T. The view object
 // maintains a reader lock on the guarding mutex during its lifetime. The view
 // object dereferences to the guarded object.
-template <typename T> class ReaderLockView {
-public:
-  ReaderLockView() = delete;
+template <typename T>
+class ABSL_SCOPED_LOCKABLE ReaderLockView {
+   public:
+    ReaderLockView() = delete;
 
-  ReaderLockView(const ReaderLockView &other) = delete;
-  ReaderLockView &operator=(const ReaderLockView &other) = delete;
+    ReaderLockView(const ReaderLockView &other) = delete;
+    ReaderLockView &operator=(const ReaderLockView &other) = delete;
 
-  // Non-default move operations are provided because default move
-  // implementations do not set moved-from raw pointers to nullptr. The
-  // default move-assignment implementation also leaves the previously held
-  // mutex (if any) locked.
+    // Non-default move operations are provided because default move
+    // implementations do not set moved-from raw pointers to nullptr. The
+    // default move-assignment implementation also leaves the previously held
+    // mutex (if any) locked.
 
-  ReaderLockView(ReaderLockView &&other)
-      : mu_(other.mu_), value_(other.value_) {
-    other.Clear();
-  }
-
-  ReaderLockView &operator=(ReaderLockView &&other) {
-    if (&other != this) {
-      // Ensure that the current mutex, if any, is released before moving.
-      if (mu_ != nullptr) {
-        mu_->ReaderUnlock();
-      }
-
-      mu_ = other.mu_;
-      value_ = other.value_;
-
-      other.Clear();
+    ReaderLockView(ReaderLockView &&other)
+        : mu_(other.mu_), value_(other.value_) {
+        other.Clear();
     }
-    return *this;
-  }
 
-  ~ReaderLockView() {
-    if (mu_ != nullptr) {
-      mu_->ReaderUnlock();
+    ReaderLockView &operator=(ReaderLockView &&other) {
+        if (&other != this) {
+            // Ensure that the current mutex, if any, is released before moving.
+            if (mu_ != nullptr) {
+                mu_->ReaderUnlock();
+            }
+
+            mu_ = other.mu_;
+            value_ = other.value_;
+
+            other.Clear();
+        }
+        return *this;
     }
-  }
 
-  const T &operator*() const { return *value_; }
+    ~ReaderLockView() ABSL_UNLOCK_FUNCTION() {
+        if (mu_ != nullptr) {
+            mu_->ReaderUnlock();
+        }
+    }
 
-  const T *operator->() const { return value_; }
+    const T &operator*() const { return *value_; }
 
-  // Releases the lock on the referened mutex and reacquires it when |cond| is
-  // true and the mutex can be acquired in shared mode again.
-  void Await(std::function<bool(const T &)> cond) {
-    auto condition_function = [this, cond] { return cond(*value_); };
-    mu_->Await(absl::Condition(&condition_function));
-  }
+    const T *operator->() const { return value_; }
 
-  // Releases the lock on the referened mutex and reacquires it when the mutex
-  // can be reacquired in shared mode and either:
-  //
-  //  * |cond| evaluates to true when passed the guarded value; or
-  //  * |timeout| has passed since AwaitWithTimeout() was called.
-  //
-  // The returned bool indicates whether |cond| was true when the mutex was
-  // reacquired.
-  bool AwaitWithTimeout(std::function<bool(const T &)> cond,
-                        absl::Duration timeout) {
-    auto condition_function = [this, cond] { return cond(*value_); };
-    return mu_->AwaitWithTimeout(absl::Condition(&condition_function), timeout);
-  }
+    // Releases the lock on the referened mutex and reacquires it when |cond| is
+    // true and the mutex can be acquired in shared mode again.
+    void Await(std::function<bool(const T &)> cond) {
+        auto condition_function = [this, cond] { return cond(*value_); };
+        mu_->Await(absl::Condition(&condition_function));
+    }
 
-  // As AwaitWithTimeout(), but uses a deadline instead of a timeout.
-  bool AwaitWithDeadline(std::function<bool(const T &)> cond,
-                         absl::Time deadline) {
-    auto condition_function = [this, cond] { return cond(*value_); };
-    return mu_->AwaitWithDeadline(absl::Condition(&condition_function),
-                                  deadline);
-  }
+    // Releases the lock on the referened mutex and reacquires it when the mutex
+    // can be reacquired in shared mode and either:
+    //
+    //  * |cond| evaluates to true when passed the guarded value; or
+    //  * |timeout| has passed since AwaitWithTimeout() was called.
+    //
+    // The returned bool indicates whether |cond| was true when the mutex was
+    // reacquired.
+    bool AwaitWithTimeout(std::function<bool(const T &)> cond,
+                          absl::Duration timeout) {
+        auto condition_function = [this, cond] { return cond(*value_); };
+        return mu_->AwaitWithTimeout(absl::Condition(&condition_function),
+                                     timeout);
+    }
 
-protected:
-  template <typename U> friend class MutexGuarded;
+    // As AwaitWithTimeout(), but uses a deadline instead of a timeout.
+    bool AwaitWithDeadline(std::function<bool(const T &)> cond,
+                           absl::Time deadline) {
+        auto condition_function = [this, cond] { return cond(*value_); };
+        return mu_->AwaitWithDeadline(absl::Condition(&condition_function),
+                                      deadline);
+    }
 
-  ReaderLockView(absl::Mutex *mu, const T *value) : mu_(mu), value_(value) {}
+   protected:
+    template <typename U>
+    friend class MutexGuarded;
 
-private:
-  // Sets all internal pointers to nullptr.
-  void Clear() {
-    mu_ = nullptr;
-    value_ = nullptr;
-  }
+    ReaderLockView(absl::Mutex *mu, const T *value) : mu_(mu), value_(value) {}
 
-  absl::Mutex *mu_;
-  const T *value_;
+   private:
+    // Sets all internal pointers to nullptr.
+    void Clear() {
+        mu_ = nullptr;
+        value_ = nullptr;
+    }
+
+    absl::Mutex *mu_;
+    const T *value_;
 };
 
-} // namespace asylo
+}  // namespace asylo
 
-#endif // ASYLO_UTIL_MUTEX_GUARDED_H_
-endif  // ASYLO_UTIL_MUTEX_GUARDED_H_
+#endif  // ASYLO_UTIL_MUTEX_GUARDED_H_
 
