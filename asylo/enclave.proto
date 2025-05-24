@@ -36,8 +36,6 @@ option java_multiple_files = true;
 // A configuration message for the EnclaveManager to communicate with the
 // attestation daemon.
 message HostConfig {
-  option deprecated = true;
-
   // Local attestation domain of the enclave.
   optional string local_attestation_domain = 1;
 }
@@ -108,7 +106,7 @@ message EnclaveConfig {
 
   // System-specific enclave configuration. This configuration is expected to be
   // the same for all enclaves running under the same instance of an OS.
-  optional HostConfig host_config = 8 [deprecated = true];
+  optional HostConfig host_config = 8;
 
   // Enclave assertion authority configuration. If the enclave makes use of an
   // assertion authority that requires configuration, a config should be listed
