@@ -18,7 +18,6 @@
 
 #include "asylo/platform/core/trusted_application.h"
 
-#include <absl/log/initialize.h>
 #include <sys/ucontext.h>
 #include <unistd.h>
 

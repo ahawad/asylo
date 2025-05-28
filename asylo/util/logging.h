@@ -30,5 +30,6 @@
 #include "absl/log/check.h"         // IWYU pragma: export
 #include "absl/log/initialize.h"    // IWYU pragma: export
 #include "absl/log/log.h"           // IWYU pragma: export
-
+#include "absl/log/globals.h"           // IWYU pragma: export
+                                  
 #endif // ASYLO_UTIL_LOGGING_H_
