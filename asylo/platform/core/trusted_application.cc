@@ -202,15 +202,13 @@ Status TrustedApplication::InitializeInternal(const EnclaveConfig &config) {
   InitializeIO(config);
   Status status =
       InitializeEnvironmentVariables(config.environment_variables());
-  const char *log_directory = config.logging_config().log_directory().c_str();
   int vlog_level = config.logging_config().vlog_level();
   absl::InitializeLog();
-  absl::SetLogDestination(absl::LogSeverity::kInfo, log_directory);
-  absl::SetVLogLevel(vlog_level);
+  absl::SetVLogLevel(GetEnclaveName(), vlog_level);
   absl::SetMinLogLevel(
-      static_cast<absl::LogSeverity>(config.logging_config().min_log_level()));
+      static_cast<absl::LogSeverityAtLeast>(config.logging_config().min_log_level()));
   absl::SetStderrThreshold(
-      static_cast<absl::LogSeverity>(config.logging_config().min_log_level()));
+      static_cast<absl::LogSeverityAtLeast>(config.logging_config().min_log_level()));
 
   if (!status.ok()) {
     LOG(WARNING) << "Initialization of enclave environment variables failed: "
