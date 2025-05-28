@@ -61,6 +61,9 @@ message LoggingConfig {
 
   // Directory under which to store enclave log files. Default: `"/tmp/"`
   optional string log_directory = 2;
+
+  // The min logging level inside the enclave.
+  optional int32 min_log_level = 3 [default = 0];
 }
 
 // The configuration required to load an enclave. This message is extended for

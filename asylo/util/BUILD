@@ -250,7 +250,12 @@ cc_library(
     hdrs = ["logging.h"],
     copts = ASYLO_DEFAULT_COPTS,
     visibility = ["//visibility:public"],
-    deps = ["@com_google_absl//absl/base:core_headers"],
+    deps = [
+        "@com_google_absl//absl/base:core_headers",
+        "@com_google_absl//absl/log",
+        "@com_google_absl//absl/log:check",
+        "@com_google_absl//absl/log:initialize",
+    ],
 )
 
 cc_library(

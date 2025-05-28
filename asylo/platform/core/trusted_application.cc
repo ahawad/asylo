@@ -18,6 +18,7 @@
 
 #include "asylo/platform/core/trusted_application.h"
 
+#include <absl/log/initialize.h>
 #include <sys/ucontext.h>
 #include <unistd.h>
 
@@ -30,7 +31,6 @@
 
 #include "absl/memory/memory.h"
 #include "absl/status/status.h"
-#include "asylo/util/logging.h"
 #include "asylo/identity/init.h"
 #include "asylo/platform/common/enclave_state.h"
 #include "asylo/platform/core/entry_selectors.h"
@@ -47,6 +47,7 @@
 #include "asylo/platform/primitives/util/message.h"
 #include "asylo/platform/primitives/util/status_conversions.h"
 #include "asylo/platform/primitives/util/status_serializer.h"
+#include "asylo/util/logging.h"
 #include "asylo/util/status.h"
 #include "asylo/util/status_macros.h"
 
@@ -155,7 +156,7 @@ PrimitiveStatus Finalize(void *context, MessageReader *in, MessageWriter *out) {
   return PrimitiveStatus(result);
 }
 
-}  // namespace
+} // namespace
 
 Status VerifyOutputArguments(char **output, size_t *output_len) {
   if (!output || !output_len) {
@@ -204,9 +205,14 @@ Status TrustedApplication::InitializeInternal(const EnclaveConfig &config) {
       InitializeEnvironmentVariables(config.environment_variables());
   const char *log_directory = config.logging_config().log_directory().c_str();
   int vlog_level = config.logging_config().vlog_level();
-  if(!InitLogging(log_directory, GetEnclaveName().c_str(), vlog_level)) {
-    fprintf(stderr, "Initialization of enclave logging failed\n");
-  }
+  absl::InitializeLog();
+  absl::SetLogDestination(absl::LogSeverity::kInfo, log_directory);
+  absl::SetVLogLevel(vlog_level);
+  absl::SetMinLogLevel(
+      static_cast<absl::LogSeverity>(config.logging_config().min_log_level()));
+  absl::SetStderrThreshold(
+      static_cast<absl::LogSeverity>(config.logging_config().min_log_level()));
+
   if (!status.ok()) {
     LOG(WARNING) << "Initialization of enclave environment variables failed: "
                  << status;
@@ -356,9 +362,9 @@ int __asylo_user_fini(const char *input, size_t input_len, char **output,
   return status_serializer.Serialize(status);
 }
 
-}  // extern "C"
+} // extern "C"
 
-}  // namespace asylo
+} // namespace asylo
 
 // Implements the required enclave initialization function.
 extern "C" PrimitiveStatus asylo_enclave_init() {

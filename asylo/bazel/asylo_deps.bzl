@@ -208,10 +208,9 @@ def asylo_deps(toolchain_path = None):
     if not native.existing_rule("rules_cc"):
         http_archive(
             name = "rules_cc",
-            # Commit from 2021 April 01
-            urls = ["https://github.com/bazelbuild/rules_cc/archive/c612c9581b9e740a49ed4c006edb93912c8ab205.tar.gz"],
-            sha256 = "05073d6b8562d9f8913c274b1ec2624c5562b7077da69812b2cb4d7c9aa619ff",
-            strip_prefix = "rules_cc-c612c9581b9e740a49ed4c006edb93912c8ab205",
+            urls = ["https://github.com/bazelbuild/rules_cc/releases/download/0.1.1/rules_cc-0.1.1.tar.gz"],
+            sha256 = "712d77868b3152dd618c4d64faaddefcc5965f90f5de6e6dd1d5ddcd0be82d42",
+            strip_prefix = "rules_cc-0.1.1",
         )
 
     # Required for Protobuf
@@ -246,33 +245,23 @@ def asylo_deps(toolchain_path = None):
 
     # Absl for C++
     if not native.existing_rule("com_google_absl"):
+        _ABSL_COMMIT = "54fac219c4ef0bc379dfffb0b8098725d77ac81b"
         http_archive(
             name = "com_google_absl",
-            # Commit from 2021 May 05
+            # Commit from 2024 Jan 16
             urls = [
-                "https://github.com/abseil/abseil-cpp/archive/037ade20d1132781aae3cda4d547a9e6a5f557bf.tar.gz",
+                "https://github.com/abseil/abseil-cpp/archive/%s.tar.gz" % _ABSL_COMMIT,
             ],
-            sha256 = "be19582576eeaeede9026ec00c9fe920214a2d67eeaf8b27e394f68ebe51844f",
-            strip_prefix = "abseil-cpp-037ade20d1132781aae3cda4d547a9e6a5f557bf",
+            strip_prefix = "abseil-cpp-%s" % _ABSL_COMMIT,
         )
 
     # Protobuf
     if not native.existing_rule("com_google_protobuf"):
         http_archive(
             name = "com_google_protobuf",
-            strip_prefix = "protobuf-3.15.8",
-            urls = ["https://github.com/google/protobuf/archive/v3.15.8.tar.gz"],
-            sha256 = "0cbdc9adda01f6d2facc65a22a2be5cecefbefe5a09e5382ee8879b522c04441",
-        )
-
-    # gRPC
-    if not native.existing_rule("com_github_grpc_grpc"):
-        http_archive(
-            name = "com_github_grpc_grpc",
-            urls = ["https://github.com/grpc/grpc/archive/v1.37.1.tar.gz"],
-            sha256 = "acf247ec3a52edaee5dee28644a4e485c5e5badf46bdb24a80ca1d76cb8f1174",
-            patches = ["@com_google_asylo//asylo/distrib:grpc_1_37_1.patch"],
-            strip_prefix = "grpc-1.37.1",
+            strip_prefix = "protobuf-29.0",
+            urls = ["https://github.com/google/protobuf/archive/v29.0.tar.gz"],
+            sha256 = "10a0d58f39a1a909e95e00e8ba0b5b1dc64d02997f741151953a2b3659f6e78c",
         )
 
     # Apple build rules. Pulled in by grpc_deps(), but need a newer version to avoid error with Bazel-at-HEAD.
@@ -280,9 +269,17 @@ def asylo_deps(toolchain_path = None):
     if not native.existing_rule("build_bazel_rules_apple"):
         http_archive(
             name = "build_bazel_rules_apple",
-            strip_prefix = "rules_apple-0.31.2",
-            sha256 = "06191d8c5f87b1f83426cdf6a6d5fc8df545786815801324a1494f46a8a9c3d3",
-            urls = ["https://github.com/bazelbuild/rules_apple/archive/0.31.2.tar.gz"],
+            strip_prefix = "rules_apple-3.22.0",
+            urls = ["https://github.com/bazelbuild/rules_apple/archive/3.22.0.tar.gz"],
+        )
+
+    # gRPC
+    if not native.existing_rule("com_github_grpc_grpc"):
+        http_archive(
+            name = "com_github_grpc_grpc",
+            urls = ["https://github.com/grpc/grpc/archive/v1.37.1.tar.gz"],
+            patches = ["@com_google_asylo//asylo/distrib:grpc_1_37_1.patch"],
+            strip_prefix = "grpc-1.37.1",
         )
 
     # Google benchmark.
