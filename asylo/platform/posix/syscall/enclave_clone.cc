@@ -19,6 +19,7 @@
 #include "asylo/platform/posix/syscall/enclave_clone.h"
 
 #include <sched.h>
+#include <cerrno>
 
 #include "asylo/platform/posix/threading/thread_manager.h"
 

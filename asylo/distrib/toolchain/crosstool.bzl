@@ -85,11 +85,11 @@ def _get_include_directories(compiler):
             "external/com_google_asylo/asylo/platform/posix/include",
             "external/com_google_asylo/asylo/platform/system/include",
             "x86_64-elf/include",
-            "x86_64-elf/include/c++/7.4.0",
-            "x86_64-elf/include/c++/7.4.0/x86_64-elf",
-            "x86_64-elf/include/c++/7.4.0/backward",
-            "lib/gcc/x86_64-elf/7.4.0/include",
-            "lib/gcc/x86_64-elf/7.4.0/include-fixed",
+            "x86_64-elf/include/c++/13.2.0",
+            "x86_64-elf/include/c++/13.2.0/x86_64-elf",
+            "x86_64-elf/include/c++/13.2.0/backward",
+            "lib/gcc/x86_64-elf/13.2.0/include",
+            "lib/gcc/x86_64-elf/13.2.0/include-fixed",
         ]
     else:
         fail("Unsupported compiler: " + compiler)
@@ -656,7 +656,8 @@ def _impl(ctx):
                     flag_group(
                         flags = [
                             "-g0",
-                            "-O2",
+                            "-O3",
+                            "-march=skylake-avx512",
                             "-DNDEBUG",
                             "-ffunction-sections",
                             "-fdata-sections",
@@ -1109,7 +1110,6 @@ def _impl(ctx):
                                 "-lgcc",
                                 "-lm",
                                 "-lenclave",
-                                "-Wl,-shared",
                                 "-Wl,-no-undefined",
                             ],
                         ),
@@ -1129,7 +1129,6 @@ def _impl(ctx):
                                 "-lgcc",
                                 "-lm",
                                 "-lenclave",
-                                "-Wl,-shared",
                             ],
                         ),
                     ],
@@ -1149,7 +1148,6 @@ def _impl(ctx):
                                 "-lgcc",
                                 "-lm",
                                 "-lenclave",
-                                "-Wl,-shared",
                             ],
                         ),
                     ],
@@ -1168,7 +1166,6 @@ def _impl(ctx):
                                 "-lgcc",
                                 "-lm",
                                 "-lenclave",
-                                "-Wl,-shared",
                             ],
                         ),
                     ],
@@ -1213,7 +1210,6 @@ def _impl(ctx):
                                 "-lgcc",
                                 "-lm",
                                 "-lenclave",
-                                "-Wl,-shared",
                                 "-Wl,-no-undefined",
                             ],
                         ),
@@ -1230,7 +1226,6 @@ def _impl(ctx):
                                 "-lgcc",
                                 "-lm",
                                 "-lenclave",
-                                "-Wl,-shared",
                             ],
                         ),
                     ],
@@ -1249,7 +1244,6 @@ def _impl(ctx):
                                 "-lgcc",
                                 "-lm",
                                 "-lenclave",
-                                "-Wl,-shared",
                             ],
                         ),
                     ],
@@ -1361,7 +1355,6 @@ def _impl(ctx):
                             "-lgcc",
                             "-lm",
                             "-lenclave",
-                            "-Wl,-shared",
                             "-Wl,-no-undefined",
                         ],
                     ),
@@ -1373,6 +1366,7 @@ def _impl(ctx):
 
     shared_flag_feature = feature(
         name = "shared_flag",
+        enabled = False,
         flag_sets = [
             flag_set(
                 actions = [

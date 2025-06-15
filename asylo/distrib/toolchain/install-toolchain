@@ -23,11 +23,11 @@ set -e
 readonly install_default=/opt/asylo/toolchains/default
 
 # Dependency source files to use when fetching from online.
-readonly gcc_tag=releases/gcc-7.4.0
+readonly gcc_tag=releases/gcc-13.2.0
 readonly gcc_default="gcc-${gcc_tag//\//-}.tar.gz" # github renames the archive.
-readonly gcc_default_sha="9d4f845f88a4eab077e777725fafd768239ede9baed6e452909e48d7abeb97c1"
-readonly binutils_default=binutils-2.24.tar.gz
-readonly binutils_default_sha="4930b2886309112c00a279483eaef2f0f8e1b1b62010e0239c16b22af7c346d4"
+readonly gcc_default_sha="80821c441131ed24ed44a1bc4cc7ad3a636636e8e82cf97987b210de3d2ae9e4"
+readonly binutils_default=binutils-2.44.tar.gz
+readonly binutils_default_sha="0cdd76777a0dfd3dd3a63f215f030208ddb91c2361d2bcc02acec0f1c16b6a2e"
 readonly newlib_default=newlib-4.1.0.tar.gz
 readonly newlib_default_sha="f296e372f51324224d387cc116dc37a6bd397198756746f93a2b02e9a5d40154"
 
@@ -46,7 +46,7 @@ FLAGS:   <-h,--help> ...        Print this message.
                                 May be a directory or a path to an archive X.ext
                                 that unpacks sources to a subdirectory X. See
                                 below for supported archive extensions.
-                                [default unpacked from binutils-2.24.tar.gz,
+                                [default unpacked from binutils-2.44.tar.gz,
                                  which is fetched from online if it does not
                                  exist.]
          <--gcc> ...            Specify the path to sources for gcc
@@ -54,7 +54,7 @@ FLAGS:   <-h,--help> ...        Print this message.
                                 that unpacks sources to a subdirectory X. See
                                 below for supported archive extensions.
                                 [default unpacked from
-                                 gcc-gcc-7_4_0-release.tar.gz which is fetched
+                                 gcc-gcc-13_2_0-release.tar.gz which is fetched
                                  from online if it does not exist.]
          <--newlib> ...         Specify the path to sources for newlib
                                 May be a directory or a path to an archive X.ext
@@ -76,6 +76,10 @@ FLAGS:   <-h,--help> ...        Print this message.
          <--no_install>         Do not store the installation path.
          <--no_build>           Do not build the toolchain.
          <--no_fetch>           Do not fetch dependencies from online.
+         <--binutils_only>      Install only binutils without GCC and newlib.
+         <--binutils_version> ... Specify binutils version to download and install
+                                (e.g., 2.34, 2.35, 2.40). Only works with
+                                --binutils_only flag.
 
 Install the Asylo compiler toolchain.
 
@@ -166,13 +170,15 @@ function do_install() {
 INTERACTIVE=
 [[ "$@" = "" ]] && INTERACTIVE=1
 
-readonly TAKE_ARGS=bin_utils:,gcc:,newlib:,build_root:,prefix:
-readonly NO_ARGS=no_fetch,help,user,system,interactive,no_build,no_install
+readonly TAKE_ARGS=bin_utils:,gcc:,newlib:,build_root:,prefix:,binutils_version:
+readonly NO_ARGS=no_fetch,help,user,system,interactive,no_build,no_install,binutils_only
 readonly LONG_FLAGS="${TAKE_ARGS},${NO_ARGS}"
 readonly opts=$(getopt -a -o hius --long ${LONG_FLAGS} -n $0 -- "$@")
 eval set -- "$opts"
 
 binutils=
+binutils_only=
+binutils_version=
 build_root=
 gcc=
 newlib=
@@ -187,6 +193,14 @@ while true; do
   case "$1" in
   --bin_utils)
     set_directory binutils "$2"
+    shift 2
+    ;;
+  --binutils_only)
+    binutils_only=1
+    shift
+    ;;
+  --binutils_version)
+    binutils_version="$2"
     shift 2
     ;;
   --build_root)
@@ -239,10 +253,16 @@ while true; do
     ;;
   esac
 done
-declare -r no_build no_fetch no_install system_install
+declare -r binutils_only binutils_version no_build no_fetch no_install system_install
 declare -r INTERACTIVE
 # build_root, user_install, and prefix are all possibly set with interaction or
 # defaults.
+
+# Validate binutils_version flag
+if [[ -n "${binutils_version}" ]] && [[ -z "${binutils_only}" ]]; then
+  echo "Error: --binutils_version can only be used with --binutils_only flag" >&2
+  exit 1
+fi
 
 #####################################
 #   Interaction for unset values    #
@@ -337,7 +357,8 @@ cp "${toolchain_root}/crosstool.bzl" "${prefix}/crosstool.bzl"
 #  Ensure source packages exist   #
 ###################################
 
-if [[ -z "${gcc}" ]]; then
+# Skip GCC and newlib if only installing binutils
+if [[ -z "${binutils_only}" ]] && [[ -z "${gcc}" ]]; then
   if [[ ! -f "${gcc_default}" ]] && [[ -z "${no_fetch}" ]]; then
     check_which wget || exit 1
     # The fetch URL is different from the file name actually fetched.
@@ -354,22 +375,87 @@ if [[ -z "${gcc}" ]]; then
 fi
 
 if [[ -z "${binutils}" ]]; then
-  if [[ ! -f "${binutils_default}" ]] && [[ -z "${no_fetch}" ]]; then
-    check_which wget || exit 1
-    wget -nv "https://ftp.gnu.org/gnu/binutils/${binutils_default}"
-  fi
-  if [[ -f "${binutils_default}" ]]; then
-    verify_sha "${binutils_default}" "${binutils_default_sha}"
-    set_directory binutils "${binutils_default}"
-    patch -u "${srcs_root}/${binutils}/gas/config/tc-i386.c" -i "${toolchain_root}/binutils-lvi.patch"
-    patch -u "${srcs_root}/${binutils}/binutils/objcopy.c" -i "${toolchain_root}/objcopy-alignment.patch"
+  # Handle version-specific binutils download
+  if [[ -n "${binutils_version}" ]]; then
+    binutils_file="binutils-${binutils_version}.tar.gz"
+    if [[ ! -f "${binutils_file}" ]] && [[ -z "${no_fetch}" ]]; then
+      check_which wget || exit 1
+      echo "Downloading binutils version ${binutils_version}..."
+      wget -nv "https://ftp.gnu.org/gnu/binutils/${binutils_file}" || {
+        echo "Failed to download binutils ${binutils_version}. Available versions can be found at:"
+        echo "https://ftp.gnu.org/gnu/binutils/"
+        exit 1
+      }
+    fi
+    if [[ -f "${binutils_file}" ]]; then
+      set_directory binutils "${binutils_file}"
+      # Apply objcopy alignment patch for all versions (critical for Asylo enclaves)
+      echo "Checking if objcopy alignment patch applies to ${binutils}..."
+      if [[ "${binutils}" == *"2.24"* ]]; then
+        echo "Applying objcopy alignment patch for Asylo compatibility..."
+        patch -u "${srcs_root}/${binutils}/binutils/objcopy.c" -i "${toolchain_root}/objcopy-alignment.patch" || {
+          echo "Warning: objcopy alignment patch failed - this may cause enclave segfaults"
+        }
+      elif [[ "${binutils}" == *"2.32"* ]]; then
+        echo "Applying binutils-2.32 section alignment patch for Asylo compatibility..."
+        patch -p1 -d "${srcs_root}/${binutils}" -i "${srcs_root}/binutils-2.32-section-alignment-final.patch" || {
+          echo "Warning: binutils-2.32 section alignment patch failed - this may cause enclave segfaults"
+        }
+      else
+        echo "Warning: Skipping objcopy alignment patch for ${binutils} - patch not compatible with this version"
+        echo "This may cause enclave segfaults - alignment patch needs to be updated for newer binutils"
+      fi
+      # Only apply LVI mitigation patch for binutils 2.24 (may not apply cleanly to newer versions)
+      if [[ "${binutils_version}" == "2.24" ]]; then
+        echo "Applying LVI mitigation patch for binutils 2.24..."
+        patch -u "${srcs_root}/${binutils}/gas/config/tc-i386.c" -i "${toolchain_root}/binutils-lvi.patch" || {
+          echo "Warning: LVI patch failed"
+        }
+      fi
+    else
+      echo "Missing binutils-${binutils_version} dependency."
+      exit 1
+    fi
   else
-    echo "Missing ${binutils_default%.tar.gz} dependency."
-    exit 1
+    # Use default binutils version
+    if [[ ! -f "${binutils_default}" ]] && [[ -z "${no_fetch}" ]]; then
+      check_which wget || exit 1
+      wget -nv "https://ftp.gnu.org/gnu/binutils/${binutils_default}"
+    fi
+    if [[ -f "${binutils_default}" ]]; then
+      verify_sha "${binutils_default}" "${binutils_default_sha}"
+      set_directory binutils "${binutils_default}"
+      # Apply objcopy alignment patch (critical for Asylo enclaves)
+      echo "Checking if objcopy alignment patch applies to ${binutils}..."
+      if [[ "${binutils}" == *"2.24"* ]]; then
+        echo "Applying objcopy alignment patch for Asylo compatibility..."
+        patch -u "${srcs_root}/${binutils}/binutils/objcopy.c" -i "${toolchain_root}/objcopy-alignment.patch" || {
+          echo "Warning: objcopy alignment patch failed - this may cause enclave segfaults"
+        }
+      elif [[ "${binutils}" == *"2.32"* ]]; then
+        echo "Applying binutils-2.32 section alignment patch for Asylo compatibility..."
+        patch -p1 -d "${srcs_root}/${binutils}" -i "${toolchain_root}/binutils-2.32-section-alignment.patch" || {
+          echo "Warning: binutils-2.32 section alignment patch failed - this may cause enclave segfaults"
+        }
+      else
+        echo "Warning: Skipping objcopy alignment patch for ${binutils} - patch not compatible with this version"
+        echo "This may cause enclave segfaults - alignment patch needs to be updated for newer binutils"
+      fi
+      # Only apply LVI mitigation patch for binutils 2.24 (may not apply cleanly to newer versions)
+      if [[ "${binutils}" == *"2.24"* ]]; then
+        echo "Applying LVI mitigation patch for binutils 2.24..."
+        patch -u "${srcs_root}/${binutils}/gas/config/tc-i386.c" -i "${toolchain_root}/binutils-lvi.patch" || {
+          echo "Warning: LVI patch failed"
+        }
+      fi
+    else
+      echo "Missing ${binutils_default%.tar.gz} dependency."
+      exit 1
+    fi
   fi
 fi
 
-if [[ -z "${newlib}" ]]; then
+if [[ -z "${binutils_only}" ]] && [[ -z "${newlib}" ]]; then
   if [[ ! -f "${newlib_default}" ]] && [[ -z "${no_fetch}" ]]; then
     check_which wget || exit 1
     wget -nv "ftp://sourceware.org/pub/newlib/${newlib_default}"
@@ -388,7 +474,10 @@ if [[ -z "${newlib}" ]]; then
   fi
 fi
 
-declare -r binutils gcc newlib
+declare -r binutils
+if [[ -z "${binutils_only}" ]]; then
+  declare -r gcc newlib
+fi
 
 ########################################
 #         Target configuration         #
@@ -404,10 +493,21 @@ cd "${build_root}"
 
 if [[ ! -d build-binutils ]]; then
   (mkdir build-binutils && cd build-binutils &&
-    CFLAGS="-Wno-error -Wno-incompatible-pointer-types" "${srcs_root}/${binutils}/configure" \
+    CFLAGS="-Wno-error -Wno-incompatible-pointer-types -Wno-use-after-free" \
+    CXXFLAGS="-Wno-error -Wno-incompatible-pointer-types -Wno-use-after-free" \
+    "${srcs_root}/${binutils}/configure" \
       --disable-werror --target="${target}" --prefix="${prefix}" &&
     make -j"${JOBS}" && make install &&
     echo "installed binutils")
+fi
+
+# Exit early if only building binutils
+if [[ -n "${binutils_only}" ]]; then
+  if [[ -z "${no_install}" ]]; then
+    do_install
+  fi
+  echo "Binutils-only installation complete."
+  exit 0
 fi
 
 ################################################
@@ -426,8 +526,13 @@ GCC_CONFIG=(
   --with-pic
 )
 
+# Fix for building GCC 11.4.0 with newer host compilers
+export CFLAGS_FOR_BUILD="${CFLAGS_FOR_BUILD} -Wno-use-after-free -Wno-incompatible-pointer-types"
+export CXXFLAGS_FOR_BUILD="${CXXFLAGS_FOR_BUILD} -Wno-use-after-free -Wno-incompatible-pointer-types"
+
 if [[ ! -d build-gcc ]]; then
   (mkdir build-gcc && cd build-gcc &&
+    CFLAGS="${CFLAGS_FOR_BUILD}" CXXFLAGS="${CXXFLAGS_FOR_BUILD}" \
     "${srcs_root}/${gcc}/configure" "${GCC_CONFIG[@]}" --enable-languages=c &&
     make -j"${JOBS}" all-gcc && make -j"${JOBS}" all-target-libgcc &&
     make install-gcc && make install-target-libgcc &&
@@ -509,6 +614,7 @@ export CFLAGS_FOR_TARGET="${CFLAGS}"
 export CXXFLAGS_FOR_TARGET="${CXXFLAGS}"
 
 (mkdir build-gcc2 && cd build-gcc2 &&
+  CFLAGS="${CFLAGS_FOR_BUILD}" CXXFLAGS="${CXXFLAGS_FOR_BUILD}" \
   "${srcs_root}/${gcc}/configure" "${GCC_CONFIG[@]}" \
     --disable-werror \
     --enable-languages=c,c++ \
@@ -538,7 +644,7 @@ if [[ -z "${no_install}" ]]; then
 
   LINK_H_SOURCE_PATH="${srcs_root}/link.h"
 
-  LINK_H_TARGET_DIR="${prefix}/lib/gcc/${target}/7.4.0/include/"
+  LINK_H_TARGET_DIR="${prefix}/lib/gcc/${target}/13.2.0/include/"
 
   # Check if the target directory exists and then copy link.h into it.
   if [ -d "${LINK_H_TARGET_DIR}" ]; then
