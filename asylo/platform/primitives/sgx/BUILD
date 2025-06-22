@@ -25,7 +25,11 @@ licenses(["notice"])
 
 package(
     default_visibility = ["//asylo:implementation"],
-    features = ["-thin_lto", "no_lto", "-lto_full"],
+    features = [
+        "-thin_lto",
+        "no_lto",
+        "-lto_full",
+    ],
 )
 
 # Enclave loader for locally loaded SGX enclaves.
@@ -98,6 +102,11 @@ cc_library(
         "untrusted_cache_malloc.h",
     ],
     copts = ["-faligned-new"],
+    features = [
+        "-thin_lto",
+        "no_lto",
+        "-lto_full",
+    ],
     tags = [
         "asylo-sgx",
         "manual",
@@ -447,6 +456,11 @@ cc_library(
         "ecalls.cc",
     ],
     copts = ASYLO_DEFAULT_COPTS,
+    features = [
+        "-thin_lto",
+        "no_lto",
+        "-lto_full",
+    ],
     linkstatic = 1,
     tags = [
         "asylo-sgx",
@@ -482,6 +496,11 @@ cc_library(
         "generated_bridge_t.h",
     ],
     copts = ASYLO_DEFAULT_COPTS,
+    features = [
+        "-thin_lto",
+        "no_lto",
+        "-lto_full",
+    ],
     linkstatic = 1,
     tags = [
         "asylo-sgx",

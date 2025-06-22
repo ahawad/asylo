@@ -21,6 +21,7 @@ licenses(["notice"])  # Apache v2.0
 
 package(
     default_visibility = ["//asylo:implementation"],
+    features = ["-no_lto","-thin_lto"],
 )
 
 # Utility functions for translating time values and units.

@@ -31,6 +31,10 @@ package(
 cc_library(
     name = "trusted_arch",
     copts = ASYLO_DEFAULT_COPTS,
+    features = [
+        "-no_lto",
+        "-thin_lto",
+    ],
     deps = select({
         "@linux_sgx//:sgx_hw": ["//asylo/platform/primitives/sgx:trusted_sgx_ecalls"],
         "@linux_sgx//:sgx_sim": ["//asylo/platform/primitives/sgx:trusted_sgx_ecalls"],
@@ -50,6 +54,10 @@ cc_library(
         "sgx/untrusted/sgx_client.h",
     ],
     copts = ASYLO_DEFAULT_COPTS,
+    features = [
+        "-no_lto",
+        "-thin_lto",
+    ],
     deps = [
         "//asylo:enclave_cc_proto",
         "//asylo/platform/core:untrusted_core",
@@ -69,6 +77,10 @@ cc_library(
 # since no actual implementation is provided.
 cc_library(
     name = "trusted_build_only",
+    features = [
+        "-no_lto",
+        "-thin_lto",
+    ],
     visibility = ["//visibility:private"],
     deps = ["//asylo/platform/core:shared_name"],
 )
