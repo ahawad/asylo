@@ -3579,7 +3579,7 @@ diff -Nur sdk/trts/trts_util.h sdk/trts/trts_util.h
 diff -Nur /dev/null BUILD
 --- /dev/null
 +++ BUILD
-@@ -0,0 +1,1338 @@
+@@ -0,0 +1,1339 @@
 +# linux-sgx is the Intel SGX SDK
 +
 +load(":sgx_sdk.bzl", "asylo_sgx_backend", "enclave_lds", "sgx")
@@ -5042,7 +5042,7 @@ diff -Nur /dev/null sgx_sdk.bzl
 +    providers = backend_tools.cc_binary(
 +        ctx,
 +        basename = ctx.label.name.replace(".so", ""),
-+        extra_features = ["fully_static_link", "pie"],
++        extra_features = ["fully_static_link", "pie", "no_lto", "-thin_lto"],
 +        extra_copts = ["-fstack-protector"],
 +        extra_linkopts = [
 +            "-Wl,-Bstatic",
@@ -5941,7 +5941,6 @@ diff -Nur /dev/null internal.bzl
 +"""Build rules and settings internal to the linux_sgx library."""
 +
 +load("@com_google_asylo_backend_provider//:transitions.bzl", "transitions")
-+package(features = ["-no_lto","-thin_lto"])
 +
 +_internal_simulation_label = "@linux_sgx//:internal_is_simulation"
 +
@@ -5968,7 +5967,7 @@ diff -Nur /dev/null internal.bzl
 diff -Nur /dev/null runtime_support/BUILD
 --- /dev/null
 +++ runtime_support/BUILD
-@@ -0,0 +1,18 @@
+@@ -0,0 +1,19 @@
 +# Runtime support for linux_sgx
 +
 +load("@rules_cc//cc:defs.bzl", "cc_library")
