@@ -45,7 +45,7 @@ namespace asylo {
 template <typename HashOptions>
 class ShaHash : public HashInterface {
  public:
-  ShaHash() : context_(CHECK_NOTNULL(EVP_MD_CTX_new())) { Init(); }
+  ShaHash() : context_(EVP_MD_CTX_new()) { Init(); }
 
   // From HashInterface.
   HashAlgorithm GetHashAlgorithm() const override {
