@@ -4927,7 +4927,6 @@ diff -Nur /dev/null sgx_sdk.bzl
 +
 +load("@com_google_asylo_backend_provider//:enclave_info.bzl", "backend_tools")
 +load("@com_google_asylo_backend_provider//:transitions.bzl", "transitions")
-+package(features = ["-no_lto","-thin_lto"])
 +
 +# website-docs-metadata
 +# ---
@@ -5934,6 +5933,7 @@ diff -Nur /dev/null sgx_sdk.bzl
 +    tags = sgx_tags,
 +    unsigned_enclave = sgx_unsigned_enclave,
 +)
++
 diff -Nur /dev/null internal.bzl
 --- /dev/null
 +++ internal.bzl
