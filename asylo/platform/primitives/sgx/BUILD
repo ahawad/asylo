@@ -25,6 +25,7 @@ licenses(["notice"])
 
 package(
     default_visibility = ["//asylo:implementation"],
+    features = ["-thin_lto", "no_lto", "-lto_full"],
 )
 
 # Enclave loader for locally loaded SGX enclaves.
