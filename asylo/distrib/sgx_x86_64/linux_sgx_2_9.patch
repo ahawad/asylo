@@ -3952,7 +3952,7 @@ diff -Nur /dev/null BUILD
 +        "-Iexternal/linux_sgx/common/inc/internal/linux",
 +        "-Iexternal/boringssl",
 +    ],
-+    features = ["pic"],
++    features = ["pic", "-thin_lto"],
 +    linkopts = [
 +        "-Wl,--no-as-needed -ldl",
 +    ],
@@ -4395,7 +4395,7 @@ diff -Nur /dev/null BUILD
 +        "-Iexternal/linux_sgx/sdk/simulation/urtssim",
 +        "-Iexternal/boringssl",
 +    ],
-+    features = ["pic"],  # Not trusted, but Intel's Makefile has -fPIC
++    features = ["pic", "-thin_lto"],  # Not trusted, but Intel's Makefile has -fPIC
 +    linkopts = [
 +        "-Wl,--no-as-needed -ldl",
 +    ],
